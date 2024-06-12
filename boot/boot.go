@@ -3,7 +3,6 @@ package boot
 import (
 	"fmt"
 	"github.com/god-jason/bucket/lib"
-	"log"
 	"sync/atomic"
 )
 
@@ -23,7 +22,7 @@ func Load(name string) *Task {
 }
 
 func Register(name string, task *Task) {
-	//log.Println("[boot] register", name)
+	//println("[boot] register", name)
 	tasks.Store(name, task)
 }
 
@@ -83,7 +82,7 @@ func Open(name string) error {
 	}
 
 	//log.Info("[boot] open", name)
-	log.Println("[startup]", name)
+	println("[startup]", name)
 	//正式启动
 	err := task.Startup()
 	task.booted.Store(true) //不管成功失败，都代表已经启动了
@@ -102,7 +101,7 @@ func Close(name string) error {
 	task.booted.Store(false)
 	if task.Shutdown != nil {
 		//log.Info("[boot] close", name)
-		log.Println("[shutdown]", name)
+		println("[shutdown]", name)
 		return task.Shutdown()
 	}
 	return nil

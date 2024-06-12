@@ -4,8 +4,8 @@ import (
 	"archive/zip"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/web/curd"
 	"io"
 )
 
