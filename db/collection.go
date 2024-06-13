@@ -72,7 +72,7 @@ func DeleteMany(col string, filter interface{}) (int64, error) {
 	return ret.DeletedCount, nil
 }
 
-func DeleteByID(col string, id interface{}, result interface{}) (int64, error) {
+func DeleteByID(col string, id interface{}) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
