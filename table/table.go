@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -23,6 +24,7 @@ type Table struct {
 	Name string
 
 	//schema
+	schema *jsonschema.Schema
 
 	//钩子，CURD
 	hooks map[string]interface{}
@@ -33,6 +35,15 @@ func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
 }
 
 func (t *Table) Insert(doc Document) (id interface{}, err error) {
+
+	//检查
+	if t.schema != nil {
+		err := t.schema.Validate(doc)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	ret, err := db.InsertOne(t.Name, doc)
 	if err != nil {
 		return nil, err

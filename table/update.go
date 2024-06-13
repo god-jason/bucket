@@ -26,11 +26,11 @@ func apiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	ret, err := table.UpdateByID(id, doc, false)
+	err = table.Update(id, doc)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, ret)
+	curd.OK(ctx, nil)
 }

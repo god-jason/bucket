@@ -9,19 +9,16 @@ require (
 	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
-	github.com/google/uuid v1.4.0
 	github.com/kardianos/service v1.2.2
 	github.com/panjf2000/ants/v2 v2.9.1
-	github.com/rs/xid v1.5.0
-	github.com/segmentio/ksuid v1.0.4
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	github.com/syndtr/goleveldb v1.0.0
 	go.mongodb.org/mongo-driver v1.15.0
 	golang.org/x/crypto v0.24.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
-	xorm.io/builder v0.3.13
-	xorm.io/xorm v1.3.9
 )
 
 require (
@@ -53,6 +50,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
@@ -77,6 +75,4 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

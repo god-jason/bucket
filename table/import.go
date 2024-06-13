@@ -17,7 +17,7 @@ func Import(ctx *gin.Context) {
 		return
 	}
 
-	var doc []interface{}
+	var doc []Document
 	err = ctx.ShouldBindJSON(&doc)
 	if err != nil {
 		curd.Error(ctx, err)

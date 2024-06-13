@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/god-jason/bucket/boot"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/log"
+	_ "github.com/god-jason/bucket/table"
 	"github.com/god-jason/bucket/web"
 )
 
@@ -13,12 +13,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go func() {
-		err := db.Ping()
-		if err != nil {
-			log.Error(err)
-		}
-	}()
-	
 	_ = web.Serve()
 }
