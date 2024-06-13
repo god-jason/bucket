@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/god-jason/bucket/pkg/smart"
 	"github.com/god-jason/bucket/setting"
+	"github.com/god-jason/bucket/types"
 )
 
 func init() {
@@ -10,10 +10,10 @@ func init() {
 		Name:   "数据库",
 		Module: MODULE,
 		Title:  "数据库配置",
-		Form: []smart.FormItem{
+		Form: []types.SmartField{
 			{
 				Key: "Type", Label: "数据库类型", Type: "select", Default: "mysql",
-				Options: []smart.FormSelectOption{
+				Options: []types.SmartSelectOption{
 					{Label: "SQLite（内置）", Value: "sqlite"},
 					{Label: "MySQL", Value: "mysql"},
 					{Label: "Postgres SQL", Value: "postgres"},

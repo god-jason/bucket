@@ -93,7 +93,7 @@ func (t *Table) Delete(id interface{}) error {
 	return err
 }
 
-func (t *Table) Update(id interface{}, update interface{}) error {
+func (t *Table) Update(id interface{}, update Document) error {
 	//TODO 没有hook，则直接Update
 	if false {
 		_, err := db.UpdateByID(t.Name, id, update, false)
@@ -101,7 +101,10 @@ func (t *Table) Update(id interface{}, update interface{}) error {
 	}
 
 	var result Document
-	err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", id}}, update, &result)
+	err := db.FindOneAndUpdate(t.Name,
+		bson.D{{"_id", id}},
+		bson.D{{"$set", update}},
+		&result)
 	if err != nil {
 		return err
 	}

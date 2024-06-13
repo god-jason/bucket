@@ -8,10 +8,11 @@ import (
 )
 
 func init() {
-	api.Register("POST", "table/:table/update", apiUpdate)
+	api.Register("GET", "table/:table", apiDetail)
+	api.Register("GET", "table/:table/detail", apiDetail)
 }
 
-func apiUpdate(ctx *gin.Context) {
+func apiDetail(ctx *gin.Context) {
 	table, err := GetTable(ctx.Param("table"))
 	if err != nil {
 		curd.Error(ctx, err)
@@ -25,17 +26,11 @@ func apiUpdate(ctx *gin.Context) {
 	}
 
 	var doc Document
-	err = ctx.ShouldBindJSON(&doc)
+	err = table.Get(id, &doc)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
 	}
 
-	err = table.Update(id, doc)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
-
-	curd.OK(ctx, nil)
+	curd.OK(ctx, doc)
 }
