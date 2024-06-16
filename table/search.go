@@ -12,7 +12,7 @@ func init() {
 	api.Register("POST", "table/:table/search", apiSearch)
 }
 
-type Query struct {
+type SearchBody struct {
 	Filter map[string]interface{} `json:"filter,omitempty"`
 	Sort   map[string]int         `json:"sort,omitempty"`
 	Skip   int64                  `json:"skip,omitempty"`
@@ -27,8 +27,8 @@ func apiSearch(ctx *gin.Context) {
 		curd.Error(ctx, err)
 		return
 	}
-	var query Query
-	err = ctx.ShouldBindJSON(&query)
+	var body SearchBody
+	err = ctx.ShouldBindJSON(&body)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -37,27 +37,27 @@ func apiSearch(ctx *gin.Context) {
 	//拼接查询流水
 	var pipeline mongo.Pipeline
 
-	match := bson.D{{"$match", query.Filter}}
+	match := bson.D{{"$match", body.Filter}}
 	pipeline = append(pipeline, match)
 
-	if query.Sort != nil && len(query.Sort) > 0 {
-		sort := bson.D{{"$sort", query.Sort}}
+	if body.Sort != nil && len(body.Sort) > 0 {
+		sort := bson.D{{"$sort", body.Sort}}
 		pipeline = append(pipeline, sort)
 	}
-	if query.Skip > 0 {
-		skip := bson.D{{"$skip", query.Skip}}
+	if body.Skip > 0 {
+		skip := bson.D{{"$skip", body.Skip}}
 		pipeline = append(pipeline, skip)
 	}
-	if query.Limit > 0 {
-		limit := bson.D{{"$limit", query.Limit}}
+	if body.Limit > 0 {
+		limit := bson.D{{"$limit", body.Limit}}
 		pipeline = append(pipeline, limit)
 	}
 
 	//寻找外键
 	for _, f := range table.Fields {
-		if query.Fields != nil {
+		if body.Fields != nil {
 			//没有查询的字段，不找外键
-			if ff, ok := query.Fields[f.Name]; !ok || ff <= 0 {
+			if ff, ok := body.Fields[f.Name]; !ok || ff <= 0 {
 				continue
 			}
 		}
@@ -75,15 +75,15 @@ func apiSearch(ctx *gin.Context) {
 			}}}
 			pipeline = append(pipeline, lookup, unwind)
 
-			if query.Fields != nil {
-				query.Fields[f.Foreign.As] = 1
+			if body.Fields != nil {
+				body.Fields[f.Foreign.As] = 1
 			}
 		}
 	}
 
 	//显示字段
-	if len(query.Fields) > 0 {
-		project := bson.D{{"$project", query.Fields}}
+	if len(body.Fields) > 0 {
+		project := bson.D{{"$project", body.Fields}}
 		pipeline = append(pipeline, project)
 	}
 
