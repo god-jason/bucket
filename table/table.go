@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
-	"github.com/santhosh-tekuri/jsonschema/v6"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -21,13 +20,10 @@ func GetTable(name string) (*Table, error) {
 }
 
 type Table struct {
-	Name string
-
-	//schema
-	schema *jsonschema.Schema
-
-	//钩子，CURD
-	hooks map[string]interface{}
+	Name   string           `json:"name,omitempty"`
+	Fields []*Field         `json:"fields,omitempty"`
+	Schema *Schema          `json:"schema,omitempty"`
+	Hooks  map[string]*Hook `json:"hooks,omitempty"`
 }
 
 func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
@@ -37,10 +33,20 @@ func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
 func (t *Table) Insert(doc Document) (id interface{}, err error) {
 
 	//检查
-	if t.schema != nil {
-		err := t.schema.Validate(doc)
+	if t.Schema != nil {
+		err = t.Schema.Validate(doc)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	//before insert
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["before.insert"]; ok {
+			err = hook.Run(map[string]any{"object": doc})
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -50,20 +56,32 @@ func (t *Table) Insert(doc Document) (id interface{}, err error) {
 	}
 	doc["_id"] = ret
 
-	//TODO hook
+	//after insert
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["after.insert"]; ok {
+			err = hook.Run(map[string]any{"object": doc})
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	return ret, nil
 }
 
 func (t *Table) Import(docs []Document) (ids []interface{}, err error) {
 
-	//TODO 没有hook，则直接InsertMany
-	if false {
-		ds := make([]interface{}, 0, len(docs))
-		for _, doc := range docs {
-			ds = append(ds, doc)
+	//没有hook，则直接InsertMany
+	if t.Hooks != nil {
+		if _, ok := t.Hooks["before.insert"]; !ok {
+			if _, ok := t.Hooks["after.insert"]; !ok {
+				ds := make([]interface{}, 0, len(docs))
+				for _, doc := range docs {
+					ds = append(ds, doc)
+				}
+				return db.InsertMany(t.Name, ds)
+			}
 		}
-		return db.InsertMany(t.Name, ds)
 	}
 
 	for _, doc := range docs {
@@ -77,10 +95,24 @@ func (t *Table) Import(docs []Document) (ids []interface{}, err error) {
 }
 
 func (t *Table) Delete(id interface{}) error {
-	//TODO 没有hook，则直接Delete
-	if false {
-		_, err := db.DeleteByID(t.Name, id)
-		return err
+	//没有hook，则直接Delete
+	if t.Hooks != nil {
+		if _, ok := t.Hooks["before.delete"]; !ok {
+			if _, ok := t.Hooks["after.delete"]; !ok {
+				_, err := db.DeleteByID(t.Name, id)
+				return err
+			}
+		}
+	}
+
+	//before delete
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["before.delete"]; ok {
+			err := hook.Run(map[string]any{"id": id})
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	var result Document
@@ -88,16 +120,39 @@ func (t *Table) Delete(id interface{}) error {
 	if err != nil {
 		return err
 	}
-	//TODO hook
+
+	//after delete
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["after.delete"]; ok {
+			err := hook.Run(map[string]any{"id": id, "object": result})
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return err
 }
 
 func (t *Table) Update(id interface{}, update Document) error {
-	//TODO 没有hook，则直接Update
-	if false {
-		_, err := db.UpdateByID(t.Name, id, update, false)
-		return err
+	//没有hook，则直接Update
+	if t.Hooks != nil {
+		if _, ok := t.Hooks["before.update"]; !ok {
+			if _, ok := t.Hooks["after.update"]; !ok {
+				_, err := db.UpdateByID(t.Name, id, update, false)
+				return err
+			}
+		}
+	}
+
+	//before update
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["before.update"]; ok {
+			err := hook.Run(map[string]any{"id": id, "update": update})
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	var result Document
@@ -108,7 +163,16 @@ func (t *Table) Update(id interface{}, update Document) error {
 	if err != nil {
 		return err
 	}
-	//TODO hook
+
+	//after update
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["after.update"]; ok {
+			err := hook.Run(map[string]any{"id": id, "update": update, "object": result})
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return err
 }
@@ -118,7 +182,16 @@ func (t *Table) Get(id interface{}, result *Document) error {
 	if err != nil {
 		return err
 	}
-	//TODO hook
+
+	//after get
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["after.get"]; ok {
+			err := hook.Run(map[string]any{"id": id, "object": result})
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return err
 }
