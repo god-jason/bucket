@@ -55,6 +55,8 @@ func Load(name string) error {
 
 func LoadAll() error {
 	d := filepath.Join(viper.GetString("data"), Path)
+	_ = os.MkdirAll(d, os.ModePerm)
+
 	es, err := os.ReadDir(d)
 	if err != nil {
 		return err

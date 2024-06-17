@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"github.com/god-jason/bucket/config"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -55,7 +56,7 @@ func Tables() ([]string, error) {
 	if db == nil {
 		return nil, ErrDisconnect
 	}
-	return db.ListCollectionNames(context.Background(), nil)
+	return db.ListCollectionNames(context.Background(), bson.D{{}})
 }
 
 func Close() error {
