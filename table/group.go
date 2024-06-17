@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/curd"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -21,8 +22,11 @@ type Group struct {
 type GroupBody struct {
 	Filter map[string]interface{} `json:"filter,omitempty"`
 	Field  string                 `json:"field,omitempty"`
-	Format string                 `json:"format,omitempty"` //日期格式 支持 $dateToString %Y-%m-%d %H:%M:%S
 	Groups []Group                `json:"groups,omitempty"`
+	Step   int                    `json:"step,omitempty"` //步长
+	Unit   string                 `json:"unit,omitempty"` //单位 year month week day hour minute second
+
+	//Format string                 `json:"format,omitempty"` //日期格式 支持 $dateToString %Y-%m-%d %H:%M:%S
 }
 
 func apiGroup(ctx *gin.Context) {
@@ -48,17 +52,24 @@ func apiGroup(ctx *gin.Context) {
 	for _, f := range table.Fields {
 		if f.Name == body.Field {
 			if f.Type == "date" {
-				format := body.Format
-				if format == "" {
-					format = "%Y-%m-%d %H"
-				}
-				//日期类型要特殊处理
-				groups = bson.D{{"_id", bson.D{{"$dateToString", bson.M{
-					"format":   format,
-					"date":     "$" + body.Field,
-					"timezone": "+08:00", //time.Local.String(), Asia/Shanghai
-					//TODO 改为系统时区
+				groups = bson.D{{"_id", bson.D{{"$dateTrunc", bson.M{
+					"date":        "$" + body.Field,
+					"unit":        body.Unit,
+					"binSize":     body.Step,
+					"timezone":    viper.GetString("timezone"),
+					"startOfWeek": "monday",
 				}}}}}
+
+				//format := body.Format
+				//if format == "" {
+				//	format = "%Y-%m-%d %H"
+				//}
+				//日期类型要特殊处理
+				//groups = bson.D{{"_id", bson.D{{"$dateToString", bson.M{
+				//	"format":   format,
+				//	"date":     "$" + body.Field,
+				//	"timezone": "+08:00", //time.Local.String(), Asia/Shanghai
+				//}}}}}
 			}
 			break
 		}

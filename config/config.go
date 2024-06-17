@@ -18,6 +18,7 @@ func init() {
 
 	//数据目录
 	viper.SetDefault("data", "data")
+	viper.SetDefault("timezone", "Asia/Shanghai")
 }
 
 func Name(name string) {

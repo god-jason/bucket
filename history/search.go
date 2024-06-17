@@ -6,6 +6,7 @@ import (
 	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -49,9 +50,8 @@ func historySearch(ctx *gin.Context) {
 		"date":        "$date",
 		"unit":        body.Unit,
 		"binSize":     body.Step,
-		"timezone":    "+08:00", //time.Local.String(), Asia/Shanghai
+		"timezone":    viper.GetString("timezone"),
 		"startOfWeek": "monday",
-		//TODO 改为系统时区
 	}}}}}
 
 	//取值

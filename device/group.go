@@ -6,6 +6,7 @@ import (
 	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -32,16 +33,12 @@ func deviceGroup(ctx *gin.Context) {
 	for _, f := range _table.Fields {
 		if f.Name == body.Field {
 			if f.Type == "date" {
-				format := body.Format
-				if format == "" {
-					format = "%Y-%m-%d %H"
-				}
-				//日期类型要特殊处理
-				groups = bson.D{{"_id", bson.D{{"$dateToString", bson.M{
-					"format":   format,
-					"date":     "$" + body.Field,
-					"timezone": "+08:00", //time.Local.String(), Asia/Shanghai
-					//TODO 改为系统时区
+				groups = bson.D{{"_id", bson.D{{"$dateTrunc", bson.M{
+					"date":        "$" + body.Field,
+					"unit":        body.Unit,
+					"binSize":     body.Step,
+					"timezone":    viper.GetString("timezone"),
+					"startOfWeek": "monday",
 				}}}}}
 			}
 			break
