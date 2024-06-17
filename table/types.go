@@ -17,6 +17,7 @@ type Field struct {
 	Default  any      `json:"default,omitempty"`
 	Foreign  *Foreign `json:"foreign,omitempty"`
 	Created  bool     `json:"created,omitempty"` //创建时间
+	Children []*Field `json:"children,omitempty"`
 }
 
 type TimeSeries struct {

@@ -19,6 +19,10 @@ var _table = table.Table{
 	},
 }
 
+func init() {
+	table.Register(&_table)
+}
+
 func Table() *table.Table {
 	return &_table
 }

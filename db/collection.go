@@ -223,6 +223,9 @@ func CreateIndex(tab string, keys []string) error {
 	for _, k := range keys {
 		ks = append(ks, bson.E{Key: k, Value: 1}) //未支持降序索引
 	}
-	_, err := db.Collection(tab).Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: ks})
+	_, err := db.Collection(tab).Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys:    ks,
+		Options: options.Index().SetSparse(true), //稀松索引
+	})
 	return err
 }

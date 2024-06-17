@@ -8,14 +8,24 @@ import (
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 func init() {
 	api.Register("POST", "history/search", historySearch)
 }
 
+type SearchBody struct {
+	Tags   interface{}       `json:"tags,omitempty"`   //tags过滤器
+	Begin  time.Time         `json:"begin"`            //开始时间
+	End    time.Time         `json:"end"`              //结束时间
+	Unit   string            `json:"unit,omitempty"`   //单位 year month week day hour minute second
+	Step   int               `json:"step,omitempty"`   //步长
+	Values map[string]string `json:"values,omitempty"` //values显示 sum avg min max first last median
+}
+
 func historySearch(ctx *gin.Context) {
-	var body table.SearchBody
+	var body SearchBody
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
 		curd.Error(ctx, err)
@@ -24,56 +34,37 @@ func historySearch(ctx *gin.Context) {
 
 	//拼接查询流水
 	var pipeline mongo.Pipeline
-
-	match := bson.D{{"$match", body.Filter}}
+	filter := bson.D{{"tags", body.Tags}}
+	if !body.Begin.IsZero() {
+		filter = append(filter, bson.E{Key: "date", Value: bson.D{{"$gte", body.Begin}}})
+	}
+	if !body.End.IsZero() {
+		filter = append(filter, bson.E{Key: "date", Value: bson.D{{"$lte", body.End}}})
+	}
+	match := bson.D{{"$match", filter}}
 	pipeline = append(pipeline, match)
 
-	if body.Sort != nil && len(body.Sort) > 0 {
-		sort := bson.D{{"$sort", body.Sort}}
-		pipeline = append(pipeline, sort)
-	}
-	if body.Skip > 0 {
-		skip := bson.D{{"$skip", body.Skip}}
-		pipeline = append(pipeline, skip)
-	}
-	if body.Limit > 0 {
-		limit := bson.D{{"$limit", body.Limit}}
-		pipeline = append(pipeline, limit)
+	//聚合
+	groups := bson.D{{"_id", bson.D{{"$dateTrunc", bson.M{
+		"date":        "$date",
+		"unit":        body.Unit,
+		"binSize":     body.Step,
+		"timezone":    "+08:00", //time.Local.String(), Asia/Shanghai
+		"startOfWeek": "monday",
+		//TODO 改为系统时区
+	}}}}}
+
+	//取值
+	for k, v := range body.Values {
+		groups = append(groups, bson.E{
+			Key:   k,
+			Value: bson.D{{"$" + v, "$" + k}},
+		})
 	}
 
-	//寻找外键
-	for _, f := range _table.Fields {
-		if body.Fields != nil {
-			//没有查询的字段，不找外键
-			if ff, ok := body.Fields[f.Name]; !ok || ff <= 0 {
-				continue
-			}
-		}
-		if f.Foreign != nil {
-			lookup := bson.D{{"$lookup", bson.M{
-				"from":         f.Foreign.Table,
-				"localField":   f.Name,
-				"foreignField": f.Foreign.Field,
-				"as":           f.Foreign.As,
-			}}}
-			unwind := bson.D{{"$unwind", bson.M{
-				"path": "$" + f.Foreign.As,
-				//"includeArrayIndex":          "unwind_order_index",
-				"preserveNullAndEmptyArrays": true,
-			}}}
-			pipeline = append(pipeline, lookup, unwind)
+	pipeline = append(pipeline, bson.D{{"$group", groups}})
 
-			if body.Fields != nil {
-				body.Fields[f.Foreign.As] = 1
-			}
-		}
-	}
-
-	//显示字段
-	if len(body.Fields) > 0 {
-		project := bson.D{{"$project", body.Fields}}
-		pipeline = append(pipeline, project)
-	}
+	//todo _id 重命名为 date
 
 	var results []table.Document
 	err = db.Aggregate(Bucket, pipeline, &results)

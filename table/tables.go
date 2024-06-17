@@ -29,9 +29,11 @@ func Sync() error {
 		return err
 	}
 
+	//todo 这里锁了，合适不
 	tables.Range(func(name string, table *Table) bool {
 		for _, t := range tabs {
 			if t == name {
+				//todo 检查索引
 				return true
 			}
 		}
