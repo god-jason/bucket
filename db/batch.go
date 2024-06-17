@@ -19,30 +19,29 @@ type Batch struct {
 
 func (b *Batch) InsertOne(doc interface{}) {
 	model := mongo.NewInsertOneModel().SetDocument(doc)
-	b.write(model)
+	b.Write(model)
 }
 
 func (b *Batch) UpdateOne(filter interface{}, update interface{}, upsert bool) {
 	model := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(upsert)
-	b.write(model)
+	b.Write(model)
 }
 
 func (b *Batch) UpdateMany(filter interface{}, update interface{}, upsert bool) {
 	model := mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(upsert)
-	b.write(model)
+	b.Write(model)
 }
 func (b *Batch) DeleteOne(filter interface{}) {
 	model := mongo.NewDeleteOneModel().SetFilter(filter)
-	b.write(model)
+	b.Write(model)
 }
 
 func (b *Batch) DeleteMany(filter interface{}) {
 	model := mongo.NewDeleteManyModel().SetFilter(filter)
-	b.write(model)
+	b.Write(model)
 }
 
-// 启动定时器
-func (b *Batch) write(model mongo.WriteModel) {
+func (b *Batch) Write(model mongo.WriteModel) {
 	defer b.locker.Unlock()
 	b.locker.Lock()
 	b.models = append(b.models, model)
@@ -52,7 +51,7 @@ func (b *Batch) write(model mongo.WriteModel) {
 		//启动定时器
 		b.timer = time.AfterFunc(b.WriteTimeout, func() {
 			b.timer = nil
-			_, _ = b.Write()
+			_, _ = b.Flush()
 			//TODO log
 		})
 	} else {
@@ -63,9 +62,9 @@ func (b *Batch) write(model mongo.WriteModel) {
 	}
 }
 
-func (b *Batch) Write() (*mongo.BulkWriteResult, error) {
+func (b *Batch) Flush() (*mongo.BulkWriteResult, error) {
 	if len(b.models) == 0 {
-		return nil, nil //TODO error
+		return nil, nil
 	}
 
 	//取出models并置空

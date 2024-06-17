@@ -1,9 +1,14 @@
 package gateway
 
 import (
-	mqtt "github.com/mochi-mqtt/server/v2"
+	"github.com/god-jason/bucket/device"
+	"github.com/god-jason/bucket/pool"
+	"github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/packets"
+	"strings"
 )
+
+const table = "bucket.gateway"
 
 type IncomingHook struct {
 	mqtt.HookBase
@@ -15,49 +20,53 @@ func (h *IncomingHook) ID() string {
 
 func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	//todo 检查用户名密码
+
 	return true
 }
 
 func (h *IncomingHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
 	//todo 只允许发送属性事件
+	//cl.WritePacket(nil)
+
 	return true
 }
 
-func (h *IncomingHook) OnConnect(cl *mqtt.Client, pk packets.Packet) error {
-	return nil
-}
-
-func (h *IncomingHook) OnSessionEstablish(cl *mqtt.Client, pk packets.Packet) {
-}
-
-func (h *IncomingHook) OnSessionEstablished(cl *mqtt.Client, pk packets.Packet) {
-}
-
 func (h *IncomingHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-}
+	//todo 网关离线
 
-func (h *IncomingHook) OnAuthPacket(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
-	return pk, nil
-}
-
-func (h *IncomingHook) OnSubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
-	//todo 只允许订阅自己的消息
-	return pk
-}
-
-func (h *IncomingHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
-}
-
-func (h *IncomingHook) OnUnsubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
-	return pk
-}
-
-func (h *IncomingHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 }
 
 func (h *IncomingHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
-	return pk, nil
-}
+	//直接处理数据
+	topics := strings.Split(pk.TopicName, "/")
+	if len(topics) != 3 {
+		return pk, nil
+	}
 
-func (h *IncomingHook) OnClientExpired(cl *mqtt.Client) {
+	//up/device/+/values 数据上传
+	//up/device/+/action 接口响应
+	//up/device/+/event 事件上报
+	if topics[0] == "up" {
+		//池化处理，避免拥堵
+		_ = pool.Insert(func() {
+			//解析数据，仅支持json格式（虽然效率低了点，但是没办法，大家都在用）
+			//var payload map[string]interface{}
+			//if len(pk.Payload) > 0 {
+			//	err := json.Unmarshal(pk.Payload, &payload)
+			//	if err != nil {
+			//		return
+			//	}
+			//}
+
+			//执行消息
+			switch topics[1] {
+			case "device":
+				device.HandleMqtt(topics[2], topics[3], cl, pk.Payload)
+			case "tunnel":
+
+			}
+		})
+	}
+
+	return pk, nil
 }
