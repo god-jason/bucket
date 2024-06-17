@@ -17,11 +17,11 @@ func init() {
 
 type SearchBody struct {
 	Tags   interface{}       `json:"tags,omitempty"`   //tags过滤器
+	Values map[string]string `json:"values,omitempty"` //values显示 sum avg min max first last median
 	Begin  time.Time         `json:"begin"`            //开始时间
 	End    time.Time         `json:"end"`              //结束时间
-	Unit   string            `json:"unit,omitempty"`   //单位 year month week day hour minute second
 	Step   int               `json:"step,omitempty"`   //步长
-	Values map[string]string `json:"values,omitempty"` //values显示 sum avg min max first last median
+	Unit   string            `json:"unit,omitempty"`   //单位 year month week day hour minute second
 }
 
 func historySearch(ctx *gin.Context) {
@@ -56,15 +56,13 @@ func historySearch(ctx *gin.Context) {
 
 	//取值
 	for k, v := range body.Values {
-		groups = append(groups, bson.E{
-			Key:   k,
-			Value: bson.D{{"$" + v, "$" + k}},
-		})
+		groups = append(groups, bson.E{Key: k, Value: bson.D{{"$" + v, "$" + k}}})
 	}
-
 	pipeline = append(pipeline, bson.D{{"$group", groups}})
 
-	//todo _id 重命名为 date
+	//_id 重命名为 date
+	pipeline = append(pipeline, bson.D{{"$set", bson.D{{"date", "$_id"}}}})
+	pipeline = append(pipeline, bson.D{{"$unset", "_id"}})
 
 	var results []table.Document
 	err = db.Aggregate(Bucket, pipeline, &results)
