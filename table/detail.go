@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/curd"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/god-jason/bucket/db"
 )
 
 func init() {
@@ -19,7 +19,7 @@ func apiDetail(ctx *gin.Context) {
 		return
 	}
 
-	id, err := primitive.ObjectIDFromHex(ctx.Param("id"))
+	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return

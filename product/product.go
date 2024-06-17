@@ -6,6 +6,12 @@ type Product struct {
 	Name       string
 	Type       string //泛类型，比如：电表，水表
 	Properties []*Property
+
+	properties map[string]*Property
+}
+
+func (p *Product) GetProperty(k string) *Property {
+	return p.properties[k]
 }
 
 type Property struct {

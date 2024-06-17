@@ -13,22 +13,22 @@ func init() {
 	_cron.Start()
 
 	//整点聚合
-	_, _ = _cron.AddFunc("0 * * * *", func() {
-		log.Println("整点聚合")
+	_, _ = _cron.AddFunc("0 * * * *", hourAggregate)
+}
 
-		//先创建快照
-		devices.Range(func(_ string, dev *Device) bool {
-			for _, aggregator := range dev.aggregators {
-				aggregator.Snap()
-			}
-			return true
-		})
+func hourAggregate() {
+	log.Println("整点聚合")
 
-		//再慢慢写入历史数据库
-		devices.Range(func(_ string, dev *Device) bool {
-			_ = pool.Insert(dev.Aggregate)
-			return true
-		})
-
+	//先创建快照
+	devices.Range(func(_ string, dev *Device) bool {
+		dev.snap()
+		return true
 	})
+
+	//再慢慢写入历史数据库
+	devices.Range(func(_ string, dev *Device) bool {
+		_ = pool.Insert(dev.aggregate)
+		return true
+	})
+
 }
