@@ -11,6 +11,5 @@ func init() {
 }
 
 func Startup() error {
-	//TODO 启动
-	return nil
+	return LoadAll()
 }

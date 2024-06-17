@@ -7,10 +7,10 @@ import (
 )
 
 func init() {
-	api.Register("POST", "table/:table/create", Create)
+	api.Register("POST", "table/:table/create", apiCreate)
 }
 
-func Create(ctx *gin.Context) {
+func apiCreate(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		curd.Error(ctx, err)

@@ -9,7 +9,7 @@ import (
 
 func init() {
 	api.Register("GET", "table/:table", apiDetail)
-	api.Register("GET", "table/:table/detail", apiDetail)
+	api.Register("GET", "table/:table/detail/:id", apiDetail)
 }
 
 func apiDetail(ctx *gin.Context) {
@@ -19,7 +19,7 @@ func apiDetail(ctx *gin.Context) {
 		return
 	}
 
-	id, err := db.ParseObjectId(ctx.Query("id"))
+	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return

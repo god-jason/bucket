@@ -8,12 +8,12 @@ import (
 )
 
 func init() {
-	api.Register("GET", "table/:table/delete", Delete)
-	api.Register("DELETE", "table/:table/delete", Delete)
+	api.Register("GET", "table/:table/delete/:id", apiDelete)
+	api.Register("DELETE", "table/:table/delete/:id", apiDelete)
 	//api.Register("POST", "table/:table/delete", DeleteMany)
 }
 
-func Delete(ctx *gin.Context) {
+func apiDelete(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		curd.Error(ctx, err)
@@ -21,7 +21,7 @@ func Delete(ctx *gin.Context) {
 	}
 
 	//ids := ctx.QueryArray("id") //依次删除
-	id, err := db.ParseObjectId(ctx.Query("id"))
+	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return

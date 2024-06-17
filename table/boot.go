@@ -11,7 +11,17 @@ func init() {
 }
 
 func Startup() error {
-	//TODO 加载表定义，编译schema，创建表
+	//加载表定义，编译schema，创建表
+
+	err := LoadAll()
+	if err != nil {
+		return err
+	}
+
+	err = Sync()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -83,6 +83,18 @@ func deviceSearch(ctx *gin.Context) {
 		return
 	}
 
+	//补充实时状态
+	//for _, d := range results {
+	//	oid, err := db.ParseObjectId(d["_id"])
+	//	if err != nil {
+	//		continue
+	//	}
+	//	dev := Get(oid.Hex())
+	//	if dev != nil {
+	//		d["values"] = dev.values
+	//	}
+	//}
+
 	curd.OK(ctx, results)
 }
 

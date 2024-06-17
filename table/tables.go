@@ -1,11 +1,18 @@
 package table
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"os"
+	"path/filepath"
+	"strings"
 )
+
+const Path = "tables"
 
 var ErrTableNotFound = errors.New("没有表定义")
 
@@ -23,13 +30,58 @@ func Register(table *Table) {
 	tables.Store(table.Name, table)
 }
 
+func Load(name string) error {
+	fn := filepath.Join(viper.GetString("data"), Path, name+".json")
+	buf, err := os.ReadFile(fn)
+	if err != nil {
+		return err
+	}
+
+	var table Table
+	err = json.Unmarshal(buf, &table)
+	if err != nil {
+		return err
+	}
+
+	err = table.init()
+	if err != nil {
+		return err
+	}
+
+	Register(&table)
+
+	return nil
+}
+
+func LoadAll() error {
+	d := filepath.Join(viper.GetString("data"), Path)
+	es, err := os.ReadDir(d)
+	if err != nil {
+		return err
+	}
+
+	for _, e := range es {
+		if e.IsDir() {
+			continue
+		}
+		if filepath.Ext(e.Name()) == ".json" {
+			err = Load(strings.TrimRight(e.Name(), ".json"))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func Sync() error {
 	tabs, err := db.Tables()
 	if err != nil {
 		return err
 	}
 
-	//todo 这里锁了，合适不
+	//todo 这里锁了，合适不???
 	tables.Range(func(name string, table *Table) bool {
 		for _, t := range tabs {
 			if t == name {

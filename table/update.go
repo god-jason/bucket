@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	api.Register("POST", "table/:table/update", apiUpdate)
+	api.Register("POST", "table/:table/update/:id", apiUpdate)
 }
 
 func apiUpdate(ctx *gin.Context) {
@@ -18,7 +18,7 @@ func apiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	id, err := db.ParseObjectId(ctx.Query("id"))
+	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return

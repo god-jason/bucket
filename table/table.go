@@ -15,6 +15,16 @@ type Table struct {
 	TimeSeries *options.TimeSeriesOptions `json:"-"` //时间序列参数
 }
 
+func (t *Table) init() error {
+	if t.Schema.string != "" {
+		err := t.Schema.Compile()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
 	return db.Aggregate(t.Name, pipeline, results)
 }
