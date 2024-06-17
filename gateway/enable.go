@@ -22,7 +22,7 @@ func gatewayEnable(ctx *gin.Context) {
 		return
 	}
 
-	_, err = db.UpdateByID(Bucket, oid, bson.D{{"$set", bson.M{"disabled": false}}}, false)
+	_, err = db.UpdateById(Bucket, oid, bson.D{{"$set", bson.M{"disabled": false}}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -39,7 +39,7 @@ func gatewayDisable(ctx *gin.Context) {
 		return
 	}
 
-	_, err = db.UpdateByID(Bucket, oid, bson.D{{"$set", bson.M{"disabled": true}}}, false)
+	_, err = db.UpdateById(Bucket, oid, bson.D{{"$set", bson.M{"disabled": true}}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return

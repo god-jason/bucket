@@ -5,6 +5,7 @@ import (
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var ErrTableNotFound = errors.New("没有表定义")
@@ -30,13 +31,13 @@ func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
 	return db.Aggregate(t.Name, pipeline, results)
 }
 
-func (t *Table) Insert(doc Document) (id interface{}, err error) {
+func (t *Table) Insert(doc Document) (id primitive.ObjectID, err error) {
 
 	//检查
 	if t.Schema != nil {
 		err = t.Schema.Validate(doc)
 		if err != nil {
-			return nil, err
+			return db.EmptyObjectId(), err
 		}
 	}
 
@@ -45,14 +46,14 @@ func (t *Table) Insert(doc Document) (id interface{}, err error) {
 		if hook, ok := t.Hooks["before.insert"]; ok {
 			err = hook.Run(map[string]any{"object": doc})
 			if err != nil {
-				return nil, err
+				return db.EmptyObjectId(), err
 			}
 		}
 	}
 
 	ret, err := db.InsertOne(t.Name, doc)
 	if err != nil {
-		return nil, err
+		return db.EmptyObjectId(), err
 	}
 	doc["_id"] = ret
 
@@ -61,7 +62,7 @@ func (t *Table) Insert(doc Document) (id interface{}, err error) {
 		if hook, ok := t.Hooks["after.insert"]; ok {
 			err = hook.Run(map[string]any{"object": doc})
 			if err != nil {
-				return nil, err
+				return db.EmptyObjectId(), err
 			}
 		}
 	}
@@ -94,12 +95,12 @@ func (t *Table) Import(docs []Document) (ids []interface{}, err error) {
 	return ids, nil
 }
 
-func (t *Table) Delete(id interface{}) error {
+func (t *Table) Delete(id primitive.ObjectID) error {
 	//没有hook，则直接Delete
 	if t.Hooks != nil {
 		if _, ok := t.Hooks["before.delete"]; !ok {
 			if _, ok := t.Hooks["after.delete"]; !ok {
-				_, err := db.DeleteByID(t.Name, id)
+				_, err := db.DeleteById(t.Name, id)
 				return err
 			}
 		}
@@ -134,12 +135,12 @@ func (t *Table) Delete(id interface{}) error {
 	return err
 }
 
-func (t *Table) Update(id interface{}, update Document) error {
+func (t *Table) Update(id primitive.ObjectID, update Document) error {
 	//没有hook，则直接Update
 	if t.Hooks != nil {
 		if _, ok := t.Hooks["before.update"]; !ok {
 			if _, ok := t.Hooks["after.update"]; !ok {
-				_, err := db.UpdateByID(t.Name, id, update, false)
+				_, err := db.UpdateById(t.Name, id, update, false)
 				return err
 			}
 		}
@@ -177,7 +178,7 @@ func (t *Table) Update(id interface{}, update Document) error {
 	return err
 }
 
-func (t *Table) Get(id interface{}, result *Document) error {
+func (t *Table) Get(id primitive.ObjectID, result *Document) error {
 	err := db.FindOne(t.Name, bson.D{{"_id", id}}, result)
 	if err != nil {
 		return err

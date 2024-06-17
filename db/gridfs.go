@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"io"
@@ -15,9 +16,9 @@ func Upload(filename string, metadata interface{}) (*gridfs.UploadStream, error)
 	return bucket.OpenUploadStream(filename, opts)
 }
 
-func UploadFrom(filename string, metadata interface{}, reader io.Reader) (id interface{}, err error) {
+func UploadFrom(filename string, metadata interface{}, reader io.Reader) (id primitive.ObjectID, err error) {
 	if bucket == nil {
-		return nil, ErrDisconnect
+		return _id, ErrDisconnect
 	}
 	opts := options.GridFSUpload().SetMetadata(metadata)
 	return bucket.UploadFromStream(filename, reader, opts)
@@ -37,28 +38,28 @@ func DownloadTo(filename string, writer io.Writer) (int64, error) {
 	return bucket.DownloadToStreamByName(filename, writer)
 }
 
-func DownloadByID(id interface{}) (*gridfs.DownloadStream, error) {
+func DownloadById(id primitive.ObjectID) (*gridfs.DownloadStream, error) {
 	if bucket == nil {
 		return nil, ErrDisconnect
 	}
 	return bucket.OpenDownloadStream(id)
 }
 
-func DownloadToByID(id interface{}, writer io.Writer) (int64, error) {
+func DownloadToById(id primitive.ObjectID, writer io.Writer) (int64, error) {
 	if bucket == nil {
 		return 0, ErrDisconnect
 	}
 	return bucket.DownloadToStream(id, writer)
 }
 
-func Rename(id interface{}, filename string) error {
+func Rename(id primitive.ObjectID, filename string) error {
 	if bucket == nil {
 		return ErrDisconnect
 	}
 	return bucket.Rename(id, filename)
 }
 
-func Remove(id interface{}) error {
+func Remove(id primitive.ObjectID) error {
 	if bucket == nil {
 		return ErrDisconnect
 	}

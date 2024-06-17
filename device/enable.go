@@ -5,7 +5,6 @@ import (
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -23,14 +22,13 @@ func deviceEnable(ctx *gin.Context) {
 		return
 	}
 
-	var doc table.Document
-	err = db.FindOneAndUpdate(Bucket, bson.D{{"_id", oid}}, bson.D{{"$set", bson.M{"disabled": false}}}, &doc)
+	_, err = db.UpdateById(Bucket, oid, bson.D{{"$set", bson.M{"disabled": false}}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
 	}
 
-	err = Load(doc)
+	err = Load(id)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -52,7 +50,7 @@ func deviceDisable(ctx *gin.Context) {
 		_ = dev.Close()
 	}
 
-	_, err = db.UpdateByID(Bucket, oid, bson.D{{"$set", bson.M{"disabled": true}}}, false)
+	_, err = db.UpdateById(Bucket, oid, bson.D{{"$set", bson.M{"disabled": true}}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return

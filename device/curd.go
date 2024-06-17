@@ -30,9 +30,7 @@ func deviceCreate(ctx *gin.Context) {
 		return
 	}
 
-	doc["_id"] = id
-
-	err = Load(doc)
+	err = Load(id.Hex())
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -56,8 +54,7 @@ func deviceUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var doc table.Document
-	err = db.FindOneAndUpdate(Bucket, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &doc)
+	_, err = db.UpdateById(Bucket, oid, bson.D{{"$set", update}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -69,7 +66,7 @@ func deviceUpdate(ctx *gin.Context) {
 		//报错
 	}
 
-	err = Load(doc)
+	err = Load(id)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -86,7 +83,7 @@ func deviceDelete(ctx *gin.Context) {
 		return
 	}
 
-	_, err = db.DeleteByID(Bucket, oid)
+	_, err = db.DeleteById(Bucket, oid)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -109,7 +106,7 @@ func deviceDetail(ctx *gin.Context) {
 	}
 
 	var doc table.Document
-	err = db.FindByID(Bucket, id, &doc)
+	err = db.FindById(Bucket, id, &doc)
 	if err != nil {
 		curd.Error(ctx, err)
 		return

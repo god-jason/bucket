@@ -13,8 +13,24 @@ func Get(id string) *Device {
 	return devices.Load(id)
 }
 
-func Load(doc table.Document) (err error) {
+func Load(id string) error {
+	oid, err := db.ParseObjectId(id)
+	if err != nil {
+		return err
+	}
+
+	var doc table.Document
+	err = db.FindById(Bucket, oid, &doc)
+	if err != nil {
+		return err
+	}
+
+	return From(doc)
+}
+
+func From(doc table.Document) (err error) {
 	dev := new(Device)
+
 	if id, ok := doc["_id"]; !ok {
 		if dev.id, err = db.ParseObjectId(id); err != nil {
 			return errors.New("_id 类型不正确")

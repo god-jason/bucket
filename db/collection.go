@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -28,15 +29,15 @@ func BulkWrite(col string, models []mongo.WriteModel) (*mongo.BulkWriteResult, e
 	return db.Collection(col).BulkWrite(context.Background(), models)
 }
 
-func InsertOne(col string, doc interface{}) (id interface{}, err error) {
+func InsertOne(col string, doc interface{}) (id primitive.ObjectID, err error) {
 	if db == nil {
-		return nil, ErrDisconnect
+		return _id, ErrDisconnect
 	}
 	ret, err := db.Collection(col).InsertOne(context.Background(), doc)
 	if err != nil {
-		return nil, err
+		return _id, err
 	}
-	return ret.InsertedID, nil
+	return ParseObjectId(ret.InsertedID)
 }
 
 func InsertMany(col string, docs []interface{}) (ids []interface{}, err error) {
@@ -72,7 +73,7 @@ func DeleteMany(col string, filter interface{}) (int64, error) {
 	return ret.DeletedCount, nil
 }
 
-func DeleteByID(col string, id interface{}) (int64, error) {
+func DeleteById(col string, id primitive.ObjectID) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -118,7 +119,7 @@ func UpdateMany(col string, filter interface{}, update interface{}) (int64, erro
 	return ret.ModifiedCount, nil
 }
 
-func UpdateByID(col string, id interface{}, update interface{}, upsert bool) (int64, error) {
+func UpdateById(col string, id primitive.ObjectID, update interface{}, upsert bool) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -161,31 +162,31 @@ func FindOne(col string, filter interface{}, result interface{}) error {
 	return ret.Decode(result)
 }
 
-func FindOneAndDelete(col string, filter interface{}, result interface{}) error {
+func FindOneAndDelete(col string, filter interface{}, raw interface{}) error {
 	if db == nil {
 		return ErrDisconnect
 	}
 	ret := db.Collection(col).FindOneAndDelete(context.Background(), filter)
-	return ret.Decode(result)
+	return ret.Decode(raw)
 }
 
-func FindOneAndUpdate(col string, filter interface{}, update interface{}, result interface{}) error {
+func FindOneAndUpdate(col string, filter interface{}, update interface{}, raw interface{}) error {
 	if db == nil {
 		return ErrDisconnect
 	}
 	ret := db.Collection(col).FindOneAndUpdate(context.Background(), filter, update)
-	return ret.Decode(result)
+	return ret.Decode(raw)
 }
 
-func FindOneAndReplace(col string, filter interface{}, replace interface{}, result interface{}) error {
+func FindOneAndReplace(col string, filter interface{}, replace interface{}, raw interface{}) error {
 	if db == nil {
 		return ErrDisconnect
 	}
 	ret := db.Collection(col).FindOneAndUpdate(context.Background(), filter, replace)
-	return ret.Decode(result)
+	return ret.Decode(raw)
 }
 
-func FindByID(col string, id interface{}, result interface{}) error {
+func FindById(col string, id primitive.ObjectID, result interface{}) error {
 	if db == nil {
 		return ErrDisconnect
 	}

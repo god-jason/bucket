@@ -17,3 +17,7 @@ func ParseObjectId(id any) (primitive.ObjectID, error) {
 		return _id, errors.New("invalid object id")
 	}
 }
+
+func EmptyObjectId() primitive.ObjectID {
+	return _id
+}

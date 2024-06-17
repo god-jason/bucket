@@ -31,6 +31,7 @@ func (b *Batch) UpdateMany(filter interface{}, update interface{}, upsert bool) 
 	model := mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(upsert)
 	b.Write(model)
 }
+
 func (b *Batch) DeleteOne(filter interface{}) {
 	model := mongo.NewDeleteOneModel().SetFilter(filter)
 	b.Write(model)

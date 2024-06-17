@@ -48,7 +48,7 @@ func gatewayUpdate(ctx *gin.Context) {
 		return
 	}
 
-	_, err = db.UpdateByID(Bucket, oid, bson.D{{"$set", update}}, false)
+	_, err = db.UpdateById(Bucket, oid, bson.D{{"$set", update}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -65,7 +65,7 @@ func gatewayDelete(ctx *gin.Context) {
 		return
 	}
 
-	_, err = db.DeleteByID(Bucket, oid)
+	_, err = db.DeleteById(Bucket, oid)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -84,7 +84,7 @@ func gatewayDetail(ctx *gin.Context) {
 	}
 
 	var doc table.Document
-	err = db.FindByID(Bucket, id, &doc)
+	err = db.FindById(Bucket, id, &doc)
 	if err != nil {
 		curd.Error(ctx, err)
 		return

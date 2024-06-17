@@ -4,8 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/curd"
-	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/table"
+	"github.com/god-jason/bucket/log"
 )
 
 func init() {
@@ -17,21 +16,8 @@ func init() {
 
 func deviceStart(ctx *gin.Context) {
 	id := ctx.Param("id")
-	oid, err := db.ParseObjectId(id)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
 
-	var doc table.Document
-
-	err = db.FindByID(Bucket, oid, &doc)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
-
-	err = Load(doc)
+	err := Load(id)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -42,39 +28,35 @@ func deviceStart(ctx *gin.Context) {
 
 func deviceStop(ctx *gin.Context) {
 	id := ctx.Param("id")
+
 	dev := Get(id)
 	if dev == nil {
 		curd.Fail(ctx, "设备不存在")
 		return
 	}
 
-	devices.Delete(id)
+	err := dev.Close()
+	if err != nil {
+		curd.Error(ctx, err)
+		return
+	}
 
 	curd.OK(ctx, nil)
 }
 
 func deviceRestart(ctx *gin.Context) {
 	id := ctx.Param("id")
-	oid, err := db.ParseObjectId(id)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
 
 	dev := Get(id)
 	if dev != nil {
-		err = dev.Close()
+		err := dev.Close()
+		if err != nil {
+			log.Error(err)
+		}
 		//报错
 	}
 
-	var doc table.Document
-	err = db.FindByID(Bucket, oid, &doc)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
-
-	err = Load(doc)
+	err := Load(id)
 	if err != nil {
 		curd.Error(ctx, err)
 		return

@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/pool"
 	"github.com/mochi-mqtt/server/v2"
@@ -17,7 +18,24 @@ func (h *IncomingHook) ID() string {
 }
 
 func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-	//todo 检查用户名密码
+	id, err := db.ParseObjectId(pk.Connect.ClientIdentifier)
+	if err != nil {
+		return false
+	}
+
+	//检查用户名密码
+	var gw Gateway
+	err = db.FindById(Bucket, id, &gw)
+	if err != nil {
+		return false
+	}
+
+	//检查用户名密码
+	if gw.Username != "" {
+		if gw.Username != string(pk.Connect.Username) || gw.Password != string(pk.Connect.Password) {
+			return false
+		}
+	}
 
 	return true
 }
@@ -30,7 +48,7 @@ func (h *IncomingHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) boo
 }
 
 func (h *IncomingHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	//todo 网关离线
+	//todo 网关离线，相关设备置为离线状态
 
 }
 

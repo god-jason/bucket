@@ -6,12 +6,10 @@ var _table = table.Table{
 	Name:   Bucket,
 	Schema: nil,
 	Fields: []*table.Field{
-		{Name: "product_id", Label: "产品", Type: "string", Index: true, Required: true, Foreign: &table.Foreign{
-			Table: "product",
-			Field: "_id",
-			As:    "product",
-		}},
-		{Name: "name", Label: "名称", Type: "string", Required: true},
+		{Name: "name", Label: "名称", Type: "string"},
+		{Name: "username", Label: "用户名", Type: "string"},
+		{Name: "password", Label: "密码", Type: "string"},
+		{Name: "clientId", Label: "客户端ID", Type: "string", Index: true},
 		{Name: "disabled", Label: "禁用", Type: "boolean"},
 		{Name: "created", Label: "创建日期", Type: "date"},
 	},
