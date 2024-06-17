@@ -12,11 +12,7 @@ type PayloadHistory struct {
 	Timestamp int64          `json:"timestamp"`
 }
 
-func HandleMqtt(id string, typ string, cl *mqtt.Client, payload []byte) {
-	dev := devices.Load(id)
-	if dev == nil {
-		return
-	}
+func (d *Device) HandleMqtt(typ string, cl *mqtt.Client, payload []byte) {
 
 	switch typ {
 	case "values":
@@ -26,7 +22,7 @@ func HandleMqtt(id string, typ string, cl *mqtt.Client, payload []byte) {
 			log.Error(err)
 			return
 		}
-		dev.PatchValues(values)
+		d.PatchValues(values)
 	case "history":
 		var histories []PayloadHistory
 		err := json.Unmarshal(payload, &histories)
@@ -35,7 +31,7 @@ func HandleMqtt(id string, typ string, cl *mqtt.Client, payload []byte) {
 			return
 		}
 		for _, history := range histories {
-			dev.WriteHistory(history.Values, history.Timestamp)
+			d.WriteHistory(history.Values, history.Timestamp)
 		}
 	case "action":
 		//action调用web接口

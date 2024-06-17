@@ -61,7 +61,10 @@ func (h *IncomingHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Pa
 			//执行消息
 			switch topics[1] {
 			case "device":
-				device.HandleMqtt(topics[2], topics[3], cl, pk.Payload)
+				dev := device.Get(topics[2])
+				if dev != nil {
+					dev.HandleMqtt(topics[3], cl, pk.Payload)
+				}
 			case "tunnel":
 
 			}
