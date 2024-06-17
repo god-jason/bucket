@@ -2,7 +2,10 @@ package main
 
 import (
 	"github.com/god-jason/bucket/boot"
+	_ "github.com/god-jason/bucket/device"
+	_ "github.com/god-jason/bucket/history"
 	"github.com/god-jason/bucket/log"
+	_ "github.com/god-jason/bucket/product"
 	_ "github.com/god-jason/bucket/table"
 	"github.com/god-jason/bucket/web"
 )

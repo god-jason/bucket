@@ -3,18 +3,7 @@ package device
 import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pool"
-	"github.com/robfig/cron/v3"
 )
-
-var _cron *cron.Cron
-
-func init() {
-	_cron = cron.New()
-	_cron.Start()
-
-	//整点聚合
-	_, _ = _cron.AddFunc("0 * * * *", hourAggregate)
-}
 
 func hourAggregate() {
 	log.Println("整点聚合")

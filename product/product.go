@@ -1,7 +1,5 @@
 package product
 
-import "github.com/god-jason/bucket/lib"
-
 type Product struct {
 	Name       string
 	Type       string //泛类型，比如：电表，水表
@@ -31,10 +29,4 @@ type Aggregator struct {
 	//Period time.Duration //1h
 	Type string //inc sum count avg last first max min
 	As   string
-}
-
-var products lib.Map[Product]
-
-func Get(id string) *Product {
-	return products.Load(id)
 }

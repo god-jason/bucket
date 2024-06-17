@@ -7,7 +7,7 @@ import (
 
 var server *mqtt.Server
 
-func startup() error {
+func Startup() error {
 	opts := &mqtt.Options{
 		InlineClient: true,
 	}
@@ -15,4 +15,11 @@ func startup() error {
 	var cfs []listeners.Config
 	_ = server.AddListenersFromConfig(cfs)
 	return server.Serve()
+}
+
+func Shutdown() error {
+	if server != nil {
+		return server.Close()
+	}
+	return nil
 }

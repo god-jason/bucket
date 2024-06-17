@@ -1,4 +1,4 @@
-package device
+package product
 
 import (
 	"github.com/gin-gonic/gin"
@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	api.Register("POST", "device/search", deviceSearch)
-	api.Register("POST", "device/count", deviceCount)
+	api.Register("POST", "product/search", productSearch)
+	api.Register("POST", "product/count", productCount)
 }
 
-func deviceSearch(ctx *gin.Context) {
+func productSearch(ctx *gin.Context) {
 	var body table.SearchBody
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
@@ -86,7 +86,7 @@ func deviceSearch(ctx *gin.Context) {
 	curd.OK(ctx, results)
 }
 
-func deviceCount(ctx *gin.Context) {
+func productCount(ctx *gin.Context) {
 	var filter interface{}
 	err := ctx.ShouldBindJSON(&filter)
 	if err != nil {

@@ -1,4 +1,4 @@
-package device
+package gateway
 
 import (
 	"github.com/gin-gonic/gin"
@@ -10,13 +10,13 @@ import (
 )
 
 func init() {
-	api.Register("POST", "device/create", deviceCreate)
-	api.Register("POST", "device/update/:id", deviceUpdate)
-	api.Register("GET", "device/delete/:id", deviceDelete)
-	api.Register("GET", "device/detail/:id", deviceDetail)
+	api.Register("POST", "gateway/create", gatewayCreate)
+	api.Register("POST", "gateway/update/:id", gatewayUpdate)
+	api.Register("GET", "gateway/delete/:id", gatewayDelete)
+	api.Register("GET", "gateway/detail/:id", gatewayDetail)
 }
 
-func deviceCreate(ctx *gin.Context) {
+func gatewayCreate(ctx *gin.Context) {
 	var doc table.Document
 	err := ctx.ShouldBind(&doc)
 	if err != nil {
@@ -30,18 +30,10 @@ func deviceCreate(ctx *gin.Context) {
 		return
 	}
 
-	doc["_id"] = id
-
-	err = Load(doc)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
-
 	curd.OK(ctx, id)
 }
 
-func deviceUpdate(ctx *gin.Context) {
+func gatewayUpdate(ctx *gin.Context) {
 	id := ctx.Param("id")
 	oid, err := db.ParseObjectId(id)
 	if err != nil {
@@ -56,20 +48,7 @@ func deviceUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var doc table.Document
-	err = db.FindOneAndUpdate(Bucket, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &doc)
-	if err != nil {
-		curd.Error(ctx, err)
-		return
-	}
-
-	dev := Get(id)
-	if dev != nil {
-		err = dev.Close()
-		//报错
-	}
-
-	err = Load(doc)
+	_, err = db.UpdateByID(Bucket, oid, bson.D{{"$set", update}}, false)
 	if err != nil {
 		curd.Error(ctx, err)
 		return
@@ -78,7 +57,7 @@ func deviceUpdate(ctx *gin.Context) {
 	curd.OK(ctx, nil)
 }
 
-func deviceDelete(ctx *gin.Context) {
+func gatewayDelete(ctx *gin.Context) {
 	id := ctx.Param("id")
 	oid, err := db.ParseObjectId(id)
 	if err != nil {
@@ -92,16 +71,12 @@ func deviceDelete(ctx *gin.Context) {
 		return
 	}
 
-	dev := Get(id)
-	if dev != nil {
-		err = dev.Close()
-		//报错
-	}
+	//TODO 断开连接？
 
 	curd.OK(ctx, nil)
 }
 
-func deviceDetail(ctx *gin.Context) {
+func gatewayDetail(ctx *gin.Context) {
 	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
 		curd.Error(ctx, err)

@@ -2,62 +2,16 @@ package device
 
 import (
 	"errors"
-	"github.com/god-jason/bucket/aggregate"
 	"github.com/god-jason/bucket/aggregate/aggregator"
-	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/history"
-	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/product"
-	"github.com/god-jason/bucket/table"
-	mqtt "github.com/mochi-mqtt/server/v2"
+	"github.com/mochi-mqtt/server/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
-var devices lib.Map[Device]
-
-var aggregateStore = db.Batch{
-	Collection:   aggregate.Bucket,
-	WriteTimeout: time.Second,
-	BufferSize:   200,
-}
-
-var historyStore = db.Batch{
-	Collection:   history.Bucket,
-	WriteTimeout: time.Second,
-	BufferSize:   200,
-}
-
 type Aggregator struct {
 	aggregator.Aggregator
 	As string
-}
-
-func Get(id string) *Device {
-	return devices.Load(id)
-}
-
-func Load(doc table.Document) (err error) {
-	dev := new(Device)
-	if id, ok := doc["_id"]; !ok {
-		if dev.id, err = db.ParseObjectId(id); err != nil {
-			return errors.New("_id 类型不正确")
-		}
-	} else {
-		return errors.New("缺少 _id")
-	}
-
-	if id, ok := doc["product_id"]; !ok {
-		if dev.productId, err = db.ParseObjectId(id); err != nil {
-			return errors.New("product_id 类型不正确")
-		}
-	} else {
-		return errors.New("缺少 product_id")
-	}
-
-	devices.Store(dev.ID(), dev)
-
-	return dev.Open()
 }
 
 type Device struct {

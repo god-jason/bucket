@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-const table = "bucket.gateway"
-
 type IncomingHook struct {
 	mqtt.HookBase
 }
