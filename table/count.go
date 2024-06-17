@@ -7,7 +7,6 @@ import (
 )
 
 func init() {
-	//api.Register("GET", "table/:table/count", apiCount)
 	api.Register("POST", "table/:table/count", apiCount)
 }
 
