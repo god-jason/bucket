@@ -2,6 +2,8 @@ package gateway
 
 import "github.com/god-jason/bucket/table"
 
+const Bucket = "bucket.gateway"
+
 var _table = table.Table{
 	Name:   Bucket,
 	Schema: nil,

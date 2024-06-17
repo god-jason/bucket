@@ -19,7 +19,7 @@ func apiDetail(ctx *gin.Context) {
 		return
 	}
 
-	id, err := db.ParseObjectId(ctx.Param("id"))
+	id, err := db.ParseObjectId(ctx.Query("id"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return

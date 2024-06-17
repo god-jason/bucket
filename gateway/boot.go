@@ -6,6 +6,6 @@ func init() {
 	boot.Register("gateway", &boot.Task{
 		Startup:  Startup, //启动
 		Shutdown: Shutdown,
-		Depends:  []string{"web"},
+		Depends:  []string{"web", "log", "database"},
 	})
 }

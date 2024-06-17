@@ -21,7 +21,7 @@ func Delete(ctx *gin.Context) {
 	}
 
 	//ids := ctx.QueryArray("id") //依次删除
-	id, err := db.ParseObjectId(ctx.Param("id"))
+	id, err := db.ParseObjectId(ctx.Query("id"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return

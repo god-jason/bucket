@@ -77,7 +77,7 @@ func (d *Device) snap() {
 	}
 }
 
-func (d *Device) aggregate() {
+func (d *Device) aggregate(now time.Time) {
 	var values map[string]any
 	for _, a := range d.aggregators {
 		val := a.Pop()
@@ -88,6 +88,7 @@ func (d *Device) aggregate() {
 
 	if len(values) > 0 {
 		values["device_id"] = d.id
+		values["date"] = now
 		//写入数据库，batch
 		aggregateStore.InsertOne(values)
 	}

@@ -6,6 +6,6 @@ func init() {
 	boot.Register("database", &boot.Task{
 		Startup:  Open,
 		Shutdown: Close,
-		Depends:  []string{"config"},
+		Depends:  []string{"config", "log"},
 	})
 }

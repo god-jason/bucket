@@ -1,5 +1,0 @@
-package product
-
-func init() {
-
-}

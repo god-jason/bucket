@@ -2,6 +2,8 @@ package device
 
 import "github.com/god-jason/bucket/table"
 
+const Bucket = "bucket.device"
+
 var _table = table.Table{
 	Name:   Bucket,
 	Schema: nil,

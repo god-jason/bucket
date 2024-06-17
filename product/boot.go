@@ -6,7 +6,7 @@ func init() {
 	boot.Register("device", &boot.Task{
 		Startup:  Startup,
 		Shutdown: nil,
-		Depends:  []string{"web"},
+		Depends:  []string{"web", "database", "log"},
 	})
 }
 
