@@ -11,7 +11,7 @@ func init() {
 }
 
 func Startup() error {
-	//TODO 启动
+	//TODO 加载表定义，编译schema，创建表
 
 	return nil
 }

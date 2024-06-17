@@ -37,6 +37,27 @@ func Ping() error {
 	return db.Client().Ping(context.Background(), nil)
 }
 
+func Database() (*mongo.Database, error) {
+	if db == nil {
+		return nil, ErrDisconnect
+	}
+	return db, nil
+}
+
+func CreateTable(name string, opts *options.CreateCollectionOptions) error {
+	if db == nil {
+		return ErrDisconnect
+	}
+	return db.CreateCollection(context.Background(), name, opts)
+}
+
+func Tables() ([]string, error) {
+	if db == nil {
+		return nil, ErrDisconnect
+	}
+	return db.ListCollectionNames(context.Background(), nil)
+}
+
 func Close() error {
 	if db == nil {
 		return ErrDisconnect

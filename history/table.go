@@ -16,6 +16,11 @@ var _table = table.Table{
 		{Name: "date", Label: "日期", Type: "date"},
 		//{Name: "created", Label: "创建日期", Type: "date"},
 	},
+	TimeSeries: &table.TimeSeries{
+		TimeField:   "date",
+		MetaField:   "",
+		Granularity: "seconds",
+	},
 }
 
 func Table() *table.Table {

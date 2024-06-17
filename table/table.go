@@ -1,31 +1,18 @@
 package table
 
 import (
-	"errors"
 	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/lib"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var ErrTableNotFound = errors.New("没有表定义")
-
-var tables lib.Map[Table]
-
-func GetTable(name string) (*Table, error) {
-	table := tables.Load(name)
-	if table == nil {
-		return nil, ErrTableNotFound
-	}
-	return table, nil
-}
-
 type Table struct {
-	Name       string           `json:"name,omitempty"`
-	Fields     []*Field         `json:"fields,omitempty"`
-	Schema     *Schema          `json:"schema,omitempty"`
-	Hooks      map[string]*Hook `json:"hooks,omitempty"`
-	TimeSeries *TimeSeries      `json:"time_series,omitempty"` //时间序列
+	Name       string                     `json:"name,omitempty"`
+	Fields     []*Field                   `json:"fields,omitempty"`
+	Schema     *Schema                    `json:"schema,omitempty"`
+	Hooks      map[string]*Hook           `json:"hooks,omitempty"`
+	TimeSeries *options.TimeSeriesOptions `json:"-"` //时间序列参数
 }
 
 func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {

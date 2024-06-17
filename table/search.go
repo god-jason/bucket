@@ -22,7 +22,7 @@ type SearchBody struct {
 }
 
 func apiSearch(ctx *gin.Context) {
-	table, err := GetTable(ctx.Param("table"))
+	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		curd.Error(ctx, err)
 		return
