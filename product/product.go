@@ -2,6 +2,7 @@ package product
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
+// Aggregator 聚合器
 type Aggregator struct {
 	//Table  string        //默认 bucket.aggregate
 	//Period time.Duration //1h
@@ -9,6 +10,7 @@ type Aggregator struct {
 	As   string `json:"as,omitempty"`
 }
 
+// Property 属性
 type Property struct {
 	Name        string        `json:"name,omitempty"`        //变量名称
 	Label       string        `json:"label,omitempty"`       //显示名称
@@ -20,6 +22,18 @@ type Property struct {
 	Aggregators []*Aggregator `json:"aggregators,omitempty"` //聚合计算
 
 	//Children *Property
+}
+
+// Alarm 报警器
+type Alarm struct {
+	Title       string
+	Level       string
+	Type        string
+	Message     string
+	Template    string
+	Delay       int //延迟时间s
+	RepeatDelay int //再次提醒间隔s
+	RepeatTotal int //总提醒次数
 }
 
 type Product struct {

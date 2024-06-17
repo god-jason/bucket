@@ -1,7 +1,9 @@
 package main
 
-import "time"
+import (
+	"fmt"
+)
 
 func main() {
-	println(time.Local.String())
+	fmt.Sprintf("343 %s 123")
 }
