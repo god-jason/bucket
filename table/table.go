@@ -21,10 +21,11 @@ func GetTable(name string) (*Table, error) {
 }
 
 type Table struct {
-	Name   string           `json:"name,omitempty"`
-	Fields []*Field         `json:"fields,omitempty"`
-	Schema *Schema          `json:"schema,omitempty"`
-	Hooks  map[string]*Hook `json:"hooks,omitempty"`
+	Name       string           `json:"name,omitempty"`
+	Fields     []*Field         `json:"fields,omitempty"`
+	Schema     *Schema          `json:"schema,omitempty"`
+	Hooks      map[string]*Hook `json:"hooks,omitempty"`
+	TimeSeries *TimeSeries      `json:"time_series,omitempty"` //时间序列
 }
 
 func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
