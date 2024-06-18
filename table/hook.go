@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/dop251/goja"
-	"github.com/god-jason/bucket/javascript"
+	"github.com/god-jason/bucket/pkg/javascript"
 )
 
 type Hook struct {

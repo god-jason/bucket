@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/curd"
-	"github.com/god-jason/bucket/javascript"
+	"github.com/god-jason/bucket/pkg/javascript"
 )
 
 func init() {
