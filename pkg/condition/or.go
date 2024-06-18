@@ -2,13 +2,12 @@ package condition
 
 import "errors"
 
-type Condition struct {
-	//外or，内and
-	Children []*And `json:"children,omitempty"`
+type Or struct {
+	Compares []*Compare `json:"compares,omitempty"`
 }
 
-func (a *Condition) Init() error {
-	for _, c := range a.Children {
+func (a *Or) Init() error {
+	for _, c := range a.Compares {
 		err := c.Init()
 		if err != nil {
 			return err
@@ -17,11 +16,11 @@ func (a *Condition) Init() error {
 	return nil
 }
 
-func (a *Condition) Eval(ctx map[string]any) (bool, error) {
-	if len(a.Children) == 0 {
+func (a *Or) Eval(ctx map[string]any) (bool, error) {
+	if len(a.Compares) == 0 {
 		return false, errors.New("没有对比")
 	}
-	for _, c := range a.Children {
+	for _, c := range a.Compares {
 		ret, err := c.Eval(ctx)
 		if err != nil {
 			return ret, err
