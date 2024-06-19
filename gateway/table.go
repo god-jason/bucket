@@ -1,11 +1,12 @@
 package gateway
 
-import "github.com/god-jason/bucket/table"
-
-const Bucket = "bucket.gateway"
+import (
+	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/table"
+)
 
 var _table = table.Table{
-	Name:   Bucket,
+	Name:   db.BucketGateway,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "name", Label: "名称", Type: "string"},

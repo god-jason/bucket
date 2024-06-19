@@ -1,4 +1,4 @@
-package project
+package alarm
 
 import (
 	"github.com/god-jason/bucket/pkg/condition"
@@ -6,10 +6,13 @@ import (
 )
 
 type AlarmScene struct {
-	Id        primitive.ObjectID  `json:"_id" bson:"_id"`
-	ProjectId primitive.ObjectID  `json:"project_id" bson:"project_id"`
+	Id        primitive.ObjectID `json:"_id" bson:"_id"`
+	ProjectId primitive.ObjectID `json:"project_id" bson:"project_id"`
+	SpaceId   primitive.ObjectID `json:"space_id" bson:"space_id"`
+	ProductId primitive.ObjectID `json:"product_id" bson:"product_id"`
+	DeviceId  primitive.ObjectID `json:"device_id" bson:"device_id"`
+	
 	Name      string              `json:"name"`
-	Times     []TimeRange         `json:"times"`
 	Condition condition.Condition `json:"condition"`
 	Alarm     Alarm               `json:"alarm"`
 	Disabled  bool                `json:"disabled"`

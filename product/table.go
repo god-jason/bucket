@@ -1,11 +1,12 @@
 package product
 
-import "github.com/god-jason/bucket/table"
-
-const Bucket = "bucket.product"
+import (
+	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/table"
+)
 
 var _table = table.Table{
-	Name:   Bucket,
+	Name:   db.BucketProduct,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "name", Label: "名称", Type: "string", Required: true},

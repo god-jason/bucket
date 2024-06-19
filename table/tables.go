@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
+	"github.com/god-jason/bucket/log"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
@@ -83,11 +84,13 @@ func Sync() error {
 		return err
 	}
 
-	//todo 这里锁了，合适不???
+	//这里锁了，合适不???
 	tables.Range(func(name string, table *Table) bool {
+		log.Println("table sync", name)
 		for _, t := range tabs {
 			if t == name {
 				//todo 检查索引
+				log.Println("table sync", name, "skip")
 				return true
 			}
 		}
@@ -116,6 +119,8 @@ func Sync() error {
 				return false
 			}
 		}
+
+		log.Println("table sync", name, "finished")
 
 		return true
 	})

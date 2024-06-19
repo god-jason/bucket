@@ -20,7 +20,7 @@ func Load(id string) error {
 	}
 
 	var doc table.Document
-	err = db.FindById(Bucket, oid, &doc)
+	err = db.FindById(db.BucketDevice, oid, &doc)
 	if err != nil {
 		return err
 	}

@@ -5,8 +5,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const Bucket = "bucket.history"
-
 var _tags = []*table.Field{
 	{Name: "device_id", Label: "设备", Type: "string", Foreign: &table.Foreign{
 		Table: "device",
@@ -21,7 +19,7 @@ var _tags = []*table.Field{
 }
 
 var _table = table.Table{
-	Name:   Bucket,
+	Name:   db.BucketHistory,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "tags", Label: "标签", Type: "object", Children: _tags},

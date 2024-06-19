@@ -133,7 +133,7 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 	return err
 }
 
-func (t *Table) Update(id primitive.ObjectID, update Document) error {
+func (t *Table) Update(id primitive.ObjectID, update any) error {
 	//没有hook，则直接Update
 	if t.Hooks != nil {
 		if _, ok := t.Hooks["before.update"]; !ok {

@@ -1,11 +1,12 @@
 package aggregate
 
-import "github.com/god-jason/bucket/table"
-
-const Bucket = "bucket.aggregate"
+import (
+	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/table"
+)
 
 var _table = table.Table{
-	Name:   Bucket,
+	Name:   db.BucketAggregate,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "device_id", Label: "设备", Type: "string", Index: true, Required: true, Foreign: &table.Foreign{

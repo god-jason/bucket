@@ -3,7 +3,6 @@ package table
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/curd"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -32,13 +31,13 @@ type GroupBody struct {
 func apiGroup(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 	var body GroupBody
 	err = ctx.ShouldBindJSON(&body)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
@@ -88,9 +87,9 @@ func apiGroup(ctx *gin.Context) {
 	var results []Document
 	err = table.Aggregate(pipeline, &results)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, results)
+	api.OK(ctx, results)
 }

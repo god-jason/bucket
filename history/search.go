@@ -3,8 +3,6 @@ package history
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/curd"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,7 +27,7 @@ func historySearch(ctx *gin.Context) {
 	var body SearchBody
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
@@ -65,11 +63,11 @@ func historySearch(ctx *gin.Context) {
 	pipeline = append(pipeline, bson.D{{"$unset", "_id"}})
 
 	var results []table.Document
-	err = db.Aggregate(Bucket, pipeline, &results)
+	err = _table.Aggregate(pipeline, &results)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, results)
+	api.OK(ctx, results)
 }

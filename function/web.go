@@ -3,7 +3,6 @@ package function
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/pkg/javascript"
 )
 
@@ -29,11 +28,11 @@ func functionGet(ctx *gin.Context) {
 
 	ret, err := vm.RunProgram(function.program)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, ret.Export())
+	api.OK(ctx, ret.Export())
 }
 
 func functionPost(ctx *gin.Context) {
@@ -48,7 +47,7 @@ func functionPost(ctx *gin.Context) {
 	var body any
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
@@ -62,9 +61,9 @@ func functionPost(ctx *gin.Context) {
 
 	ret, err := vm.RunProgram(function.program)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, ret.Export())
+	api.OK(ctx, ret.Export())
 }

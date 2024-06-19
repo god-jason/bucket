@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/web"
 	"github.com/god-jason/bucket/web/attach"
 	"net/http"
@@ -28,9 +27,9 @@ func catchError(ctx *gin.Context) {
 			//debug.Stack()
 			switch err.(type) {
 			case error:
-				curd.Error(ctx, err.(error))
+				Error(ctx, err.(error))
 			case string:
-				curd.Fail(ctx, err.(string))
+				Fail(ctx, err.(string))
 			default:
 				ctx.JSON(http.StatusOK, gin.H{"error": err})
 			}
@@ -93,7 +92,7 @@ func RegisterRoutes(router *gin.RouterGroup) {
 
 	//TODO 报接口错误（以下代码不生效，路由好像不是树形处理）
 	router.Use(func(ctx *gin.Context) {
-		curd.Fail(ctx, "Not found")
+		Fail(ctx, "Not found")
 		ctx.Abort()
 	})
 

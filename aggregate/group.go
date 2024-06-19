@@ -3,7 +3,6 @@ package aggregate
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
 	"github.com/spf13/viper"
@@ -19,7 +18,7 @@ func aggregateGroup(ctx *gin.Context) {
 	var body table.GroupBody
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
@@ -56,11 +55,11 @@ func aggregateGroup(ctx *gin.Context) {
 	pipeline = append(pipeline, group)
 
 	var results []table.Document
-	err = db.Aggregate(Bucket, pipeline, &results)
+	err = db.Aggregate(db.BucketAggregate, pipeline, &results)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, results)
+	api.OK(ctx, results)
 }

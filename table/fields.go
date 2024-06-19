@@ -3,7 +3,6 @@ package table
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/curd"
 	"github.com/god-jason/bucket/types"
 )
 
@@ -21,5 +20,5 @@ func apiFields(ctx *gin.Context) {
 
 	var fields []types.SmartField
 
-	curd.OK(ctx, fields)
+	api.OK(ctx, fields)
 }

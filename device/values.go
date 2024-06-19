@@ -3,42 +3,41 @@ package device
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/curd"
 )
 
 func init() {
 	api.Register("GET", "device/values/:id", deviceValues)
-	api.Register("POST", "device/values/:id", nil)
+	api.Register("POST", "device/values/:id", deviceValuesUpdate)
 
 }
 
 func deviceValues(ctx *gin.Context) {
 	dev := Get(ctx.Param("id"))
 	if dev == nil {
-		curd.Fail(ctx, "设备不存在")
+		api.Fail(ctx, "设备不存在")
 		return
 	}
-	curd.OK(ctx, dev.values)
+	api.OK(ctx, dev.values)
 }
 
 func deviceValuesUpdate(ctx *gin.Context) {
 	dev := Get(ctx.Param("id"))
 	if dev == nil {
-		curd.Fail(ctx, "设备不存在")
+		api.Fail(ctx, "设备不存在")
 		return
 	}
 	var values map[string]any
 	err := ctx.ShouldBindJSON(&values)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
 	err = dev.WriteValues(values)
 	if err != nil {
-		curd.Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	curd.OK(ctx, nil)
+	api.OK(ctx, nil)
 }
