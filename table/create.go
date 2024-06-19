@@ -12,22 +12,22 @@ func init() {
 func apiCreate(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	var doc Document
 	err = ctx.ShouldBindJSON(&doc)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	id, err := table.Insert(doc)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, id)
+	OK(ctx, id)
 }

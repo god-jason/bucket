@@ -20,5 +20,5 @@ func apiFields(ctx *gin.Context) {
 
 	var fields []types.SmartField
 
-	api.OK(ctx, fields)
+	OK(ctx, fields)
 }

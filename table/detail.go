@@ -14,22 +14,22 @@ func init() {
 func apiDetail(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	var doc Document
 	err = table.Get(id, &doc)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, doc)
+	OK(ctx, doc)
 }

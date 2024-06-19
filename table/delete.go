@@ -15,22 +15,22 @@ func init() {
 func apiDelete(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	//ids := ctx.QueryArray("id") //依次删除
 	id, err := db.ParseObjectId(ctx.Param("id"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	err = table.Delete(id)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, nil)
+	OK(ctx, nil)
 }

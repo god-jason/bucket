@@ -12,22 +12,22 @@ func init() {
 func apiCount(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	var filter interface{}
 	err = ctx.ShouldBindJSON(&filter)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	ret, err := table.Count(filter)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, ret)
+	OK(ctx, ret)
 }

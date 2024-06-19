@@ -31,13 +31,13 @@ type GroupBody struct {
 func apiGroup(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 	var body GroupBody
 	err = ctx.ShouldBindJSON(&body)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
@@ -87,9 +87,9 @@ func apiGroup(ctx *gin.Context) {
 	var results []Document
 	err = table.Aggregate(pipeline, &results)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, results)
+	OK(ctx, results)
 }

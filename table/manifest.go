@@ -19,18 +19,18 @@ func apiManifest(ctx *gin.Context) {
 	fn := filepath.Join(viper.GetString("data"), Path, tab+".json")
 	buf, err := os.ReadFile(fn)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	var data any
 	err = json.Unmarshal(buf, &data)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, data)
+	OK(ctx, data)
 }
 
 func apiManifestUpdate(ctx *gin.Context) {
@@ -38,13 +38,13 @@ func apiManifestUpdate(ctx *gin.Context) {
 	var data any
 	err := ctx.ShouldBindJSON(&data)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	buf, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
@@ -52,22 +52,22 @@ func apiManifestUpdate(ctx *gin.Context) {
 	fn := filepath.Join(viper.GetString("data"), Path, tab+".json")
 	file, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 	defer file.Close()
 	_, err = file.Write(buf)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
 	//加载
 	err = Load(tab)
 	if err != nil {
-		api.Error(ctx, err)
+		Error(ctx, err)
 		return
 	}
 
-	api.OK(ctx, nil)
+	OK(ctx, nil)
 }

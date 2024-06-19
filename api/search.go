@@ -35,11 +35,17 @@ func Search(tab *table.Table, after func(doc []table.Document) error) gin.Handle
 			pipeline = append(pipeline, limit)
 		}
 
+		var fields map[string]int
+		if len(body.Fields) > 0 {
+			for _, f := range body.Fields {
+				fields[f] = 1
+			}
+		}
 		//寻找外键
 		for _, f := range tab.Fields {
-			if body.Fields != nil {
+			if fields != nil {
 				//没有查询的字段，不找外键
-				if ff, ok := body.Fields[f.Name]; !ok || ff <= 0 {
+				if _, ok := fields[f.Name]; !ok {
 					continue
 				}
 			}
@@ -65,15 +71,15 @@ func Search(tab *table.Table, after func(doc []table.Document) error) gin.Handle
 
 				pipeline = append(pipeline, lookup, unwind, set)
 
-				if body.Fields != nil {
-					body.Fields[f.Foreign.As] = 1
+				if fields != nil {
+					fields[f.Foreign.As] = 1
 				}
 			}
 		}
 
 		//显示字段
 		if len(body.Fields) > 0 {
-			project := bson.D{{"$project", body.Fields}}
+			project := bson.D{{"$project", fields}}
 			pipeline = append(pipeline, project)
 		}
 

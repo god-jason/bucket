@@ -11,5 +11,5 @@ func init() {
 	api.Register("GET", "alarm/detail/:id", api.Detail(&_table, nil))
 	api.Register("POST", "alarm/count", api.Count(&_table))
 	api.Register("POST", "alarm/search", api.Search(&_table, nil))
-	api.Register("POST", "alarm/group", api.Group(&_table,nil))
+	api.Register("POST", "alarm/group", api.Group(&_table, nil))
 }

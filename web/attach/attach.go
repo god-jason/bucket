@@ -2,7 +2,6 @@ package attach
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/api"
 	"github.com/spf13/viper"
 	"io"
 	"mime"
@@ -42,7 +41,7 @@ func ApiList(root string, params ...string) gin.HandlerFunc {
 		filename := filepath.Join(viper.GetString("data"), root, filepath.Join(getParams(ctx, params)...), ctx.Param("name"))
 		files, err := os.ReadDir(filename)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 
@@ -61,7 +60,7 @@ func ApiList(root string, params ...string) gin.HandlerFunc {
 			}
 			items = append(items, item)
 		}
-		api.OK(ctx, items)
+		OK(ctx, items)
 	}
 }
 
@@ -71,7 +70,7 @@ func ApiInfo(root string, params ...string) gin.HandlerFunc {
 		filename := filepath.Join(viper.GetString("data"), root, filepath.Join(getParams(ctx, params)...), ctx.Param("name"))
 		info, err := os.Stat(filename)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 		item := &attachInfo{
@@ -81,7 +80,7 @@ func ApiInfo(root string, params ...string) gin.HandlerFunc {
 			Folder: info.IsDir(),
 		}
 
-		api.OK(ctx, item)
+		OK(ctx, item)
 	}
 }
 
@@ -92,7 +91,7 @@ func ApiUpload(root string, params ...string) gin.HandlerFunc {
 
 		form, err := ctx.MultipartForm()
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 
@@ -102,13 +101,13 @@ func ApiUpload(root string, params ...string) gin.HandlerFunc {
 				filename := filepath.Join(dir, header.Filename)
 				err := ctx.SaveUploadedFile(header, filename)
 				if err != nil {
-					api.Error(ctx, err)
+					Error(ctx, err)
 					return
 				}
 			}
 		}
 
-		api.OK(ctx, nil)
+		OK(ctx, nil)
 	}
 }
 
@@ -118,18 +117,18 @@ func ApiWrite(root string, params ...string) gin.HandlerFunc {
 		_ = os.MkdirAll(filepath.Dir(filename), os.ModePerm) //创建目录
 		f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 		defer f.Close()
 
 		_, err = io.Copy(f, ctx.Request.Body)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 
-		api.OK(ctx, nil)
+		OK(ctx, nil)
 	}
 }
 
@@ -153,7 +152,7 @@ func ApiRename(root string, params ...string) gin.HandlerFunc {
 		var rename RenameBody
 		err := ctx.ShouldBindJSON(&rename)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 
@@ -162,10 +161,10 @@ func ApiRename(root string, params ...string) gin.HandlerFunc {
 
 		err = os.Rename(filename, newPath)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
-		api.OK(ctx, nil)
+		OK(ctx, nil)
 	}
 }
 
@@ -174,10 +173,10 @@ func ApiRemove(root string, params ...string) gin.HandlerFunc {
 		filename := filepath.Join(viper.GetString("data"), root, filepath.Join(getParams(ctx, params)...), ctx.Param("name"))
 		err := os.Remove(filename)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
-		api.OK(ctx, nil)
+		OK(ctx, nil)
 	}
 }
 
@@ -186,7 +185,7 @@ func ApiMove(root string, params ...string) gin.HandlerFunc {
 		var move MoveBody
 		err := ctx.ShouldBindJSON(&move)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
 
@@ -195,10 +194,10 @@ func ApiMove(root string, params ...string) gin.HandlerFunc {
 
 		err = os.Rename(filename, newPath)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
-		api.OK(ctx, nil)
+		OK(ctx, nil)
 	}
 }
 
@@ -207,10 +206,10 @@ func ApiMakeDir(root string, params ...string) gin.HandlerFunc {
 		filename := filepath.Join(viper.GetString("data"), root, filepath.Join(getParams(ctx, params)...), ctx.Param("name"))
 		err := os.MkdirAll(filename, os.ModePerm)
 		if err != nil {
-			api.Error(ctx, err)
+			Error(ctx, err)
 			return
 		}
-		api.OK(ctx, nil)
+		OK(ctx, nil)
 	}
 }
 
