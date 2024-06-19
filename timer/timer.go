@@ -1,7 +1,6 @@
 package timer
 
 import (
-	"github.com/god-jason/bucket/action"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -13,6 +12,6 @@ type Timer struct {
 	Name      string             `json:"name"`
 	Clock     int                `json:"clock"`   //启动时间 每天的分钟 1440
 	Weekday   []int              `json:"weekday"` //0 1 2 3 4 5 6
-	Actions   []action.Action    `json:"actions"` //动作
+	Actions   []base.Action      `json:"actions"` //动作
 	Disabled  bool               `json:"disabled"`
 }

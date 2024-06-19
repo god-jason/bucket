@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/pool"
@@ -25,7 +26,7 @@ func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet)
 
 	//检查用户名密码
 	var gw Gateway
-	err = db.FindById(db.BucketGateway, id, &gw)
+	err = db.FindById(base.BucketGateway, id, &gw)
 	if err != nil {
 		return false
 	}

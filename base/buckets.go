@@ -1,4 +1,4 @@
-package db
+package base
 
 const BucketPrefix = "bucket."
 const BucketAggregate = BucketPrefix + "aggregate"

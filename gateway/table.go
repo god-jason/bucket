@@ -1,12 +1,12 @@
 package gateway
 
 import (
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/table"
 )
 
 var _table = table.Table{
-	Name:   db.BucketGateway,
+	Name:   base.BucketGateway,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "name", Label: "名称", Type: "string"},

@@ -1,6 +1,7 @@
 package product
 
 import (
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
@@ -20,7 +21,7 @@ func Load(id string) error {
 	}
 
 	var product Product
-	err = db.FindById(db.BucketProduct, oid, &product)
+	err = db.FindById(base.BucketProduct, oid, &product)
 	if err != nil {
 		return err
 	}
@@ -37,7 +38,7 @@ func From(product *Product) error {
 
 func LoadAll() error {
 	var ps []*Product
-	err := db.Find(db.BucketProduct, bson.D{}, nil, 0, 0, &ps)
+	err := db.Find(base.BucketProduct, bson.D{}, nil, 0, 0, &ps)
 	if err != nil {
 		return err
 	}

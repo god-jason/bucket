@@ -1,12 +1,12 @@
 package device
 
 import (
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/table"
 )
 
 var _table = table.Table{
-	Name:   db.BucketDevice,
+	Name:   base.BucketDevice,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "product_id", Label: "产品", Type: "string", Index: true, Required: true, Foreign: &table.Foreign{

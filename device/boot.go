@@ -1,6 +1,7 @@
 package device
 
 import (
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/boot"
 	"github.com/god-jason/bucket/db"
 	"github.com/robfig/cron/v3"
@@ -19,13 +20,13 @@ func init() {
 
 func Startup() error {
 	aggregateStore = &db.Batch{
-		Collection:   db.BucketAggregate,
+		Collection:   base.BucketAggregate,
 		WriteTimeout: time.Second,
 		BufferSize:   200,
 	}
 
 	historyStore = &db.Batch{
-		Collection:   db.BucketHistory,
+		Collection:   base.BucketHistory,
 		WriteTimeout: time.Second,
 		BufferSize:   200,
 	}

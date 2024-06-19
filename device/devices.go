@@ -2,6 +2,7 @@ package device
 
 import (
 	"errors"
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/table"
@@ -20,7 +21,7 @@ func Load(id string) error {
 	}
 
 	var doc table.Document
-	err = db.FindById(db.BucketDevice, oid, &doc)
+	err = db.FindById(base.BucketDevice, oid, &doc)
 	if err != nil {
 		return err
 	}

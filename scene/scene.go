@@ -1,7 +1,6 @@
 package scene
 
 import (
-	"github.com/god-jason/bucket/action"
 	"github.com/god-jason/bucket/pkg/condition"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -14,7 +13,7 @@ type Scene struct {
 	Name      string              `json:"name"`
 	Times     []Time              `json:"times,omitempty"`
 	Condition condition.Condition `json:"condition"` //组合条件
-	Actions   []action.Action     `json:"actions"`   //动作
+	Actions   []base.Action       `json:"actions"`   //动作
 	Disabled  bool                `json:"disabled"`
 }
 
