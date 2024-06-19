@@ -14,9 +14,23 @@ var bucket *gridfs.Bucket
 
 func Open() error {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(config.GetString(MODULE, "url")).SetServerAPIOptions(serverAPI)
+	opts := options.Client().
+		ApplyURI(config.GetString(MODULE, "url")).
+		SetServerAPIOptions(serverAPI)
 
-	// Create a new client and connect to the server
+	//鉴权
+	auth := config.GetString(MODULE, "auth")
+	username := config.GetString(MODULE, "username")
+	password := config.GetString(MODULE, "password")
+	if auth != "" && username != "" && password != "" {
+		opts.SetAuth(options.Credential{
+			AuthSource: auth,
+			Username:   username,
+			Password:   password,
+		})
+	}
+
+	//连接
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		return err

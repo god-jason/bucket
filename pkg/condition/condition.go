@@ -2,6 +2,8 @@ package condition
 
 import "errors"
 
+// Condition 条件，外OR，内And
+// 比如： （a>1 && b<2）||（c==2 && d<5）
 type Condition struct {
 	//外or，内and
 	Children []*And `json:"children,omitempty"`
