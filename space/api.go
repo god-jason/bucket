@@ -16,6 +16,7 @@ func init() {
 
 	api.Register("GET", "space/delete/:id", api.Delete(&_table, func(id primitive.ObjectID) error {
 		spaces.Delete(id.Hex())
+		//todo 删除场景，报警等
 		return nil
 	}))
 

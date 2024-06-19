@@ -16,6 +16,7 @@ func init() {
 
 	api.Register("GET", "project/delete/:id", api.Delete(&_table, func(id primitive.ObjectID) error {
 		projects.Delete(id.Hex())
+		//todo 删除相关 空间，设备绑定，场景，定时，等
 		return nil
 	}))
 

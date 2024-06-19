@@ -23,6 +23,7 @@ func init() {
 		if dev != nil {
 			return dev.Close() //报错
 		}
+		//todo 删除报警，场景，等
 		return nil
 	}))
 

@@ -49,13 +49,21 @@ func Search(tab *table.Table, after func(doc []table.Document) error) gin.Handle
 					"localField":   f.Name,
 					"foreignField": f.Foreign.Field,
 					"as":           f.Foreign.As,
+					"pipeline": bson.D{
+						{"$limit", 1},
+						{"$project", bson.M{f.Foreign.Let: 1}},
+					},
 				}}}
+				//数组扁平化
 				unwind := bson.D{{"$unwind", bson.M{
 					"path": "$" + f.Foreign.As,
 					//"includeArrayIndex":          "unwind_order_index",
-					"preserveNullAndEmptyArrays": true,
+					"preserveNullAndEmptyArrays": true, //保留空，实现左外连接
 				}}}
-				pipeline = append(pipeline, lookup, unwind)
+				//提高一级
+				set := bson.D{{"$set", bson.M{f.Foreign.As: "$" + f.Foreign.As + "." + f.Foreign.Let}}}
+
+				pipeline = append(pipeline, lookup, unwind, set)
 
 				if body.Fields != nil {
 					body.Fields[f.Foreign.As] = 1

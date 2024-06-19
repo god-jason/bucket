@@ -5,6 +5,7 @@ type Document map[string]interface{}
 type Foreign struct {
 	Table string `json:"table,omitempty"`
 	Field string `json:"field,omitempty"`
+	Let   string `json:"let,omitempty"` //引用变量
 	As    string `json:"as,omitempty"`
 }
 
