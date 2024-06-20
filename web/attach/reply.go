@@ -16,11 +16,11 @@ type ReplyList[T any] struct {
 	Error string `json:"error,omitempty"`
 }
 
-func List(ctx *gin.Context, data interface{}, total int64) {
+func List(ctx *gin.Context, data any, total int64) {
 	ctx.JSON(http.StatusOK, gin.H{"data": data, "total": total})
 }
 
-func OK(ctx *gin.Context, data interface{}) {
+func OK(ctx *gin.Context, data any) {
 	ctx.JSON(http.StatusOK, gin.H{"data": data})
 }
 

@@ -2,16 +2,17 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type SearchBody struct {
-	Filter map[string]interface{} `json:"filter,omitempty"`
-	Sort   map[string]int         `json:"sort,omitempty"`
-	Skip   int64                  `json:"skip,omitempty"`
-	Limit  int64                  `json:"limit,omitempty"`
-	Fields []string               `json:"fields,omitempty"`
+	Filter map[string]any `json:"filter,omitempty"`
+	Sort   map[string]int `json:"sort,omitempty"`
+	Skip   int64          `json:"skip,omitempty"`
+	Limit  int64          `json:"limit,omitempty"`
+	Fields []string       `json:"fields,omitempty"`
 	//Keyword string
 }
 
@@ -96,7 +97,7 @@ func ApiSearch(ctx *gin.Context) {
 		pipeline = append(pipeline, project)
 	}
 
-	var results []Document
+	var results []db.Document
 	err = table.Aggregate(pipeline, &results)
 	if err != nil {
 		Error(ctx, err)

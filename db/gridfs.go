@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-func Upload(filename string, metadata interface{}) (*gridfs.UploadStream, error) {
+func Upload(filename string, metadata any) (*gridfs.UploadStream, error) {
 	if bucket == nil {
 		return nil, ErrDisconnect
 	}
@@ -16,7 +16,7 @@ func Upload(filename string, metadata interface{}) (*gridfs.UploadStream, error)
 	return bucket.OpenUploadStream(filename, opts)
 }
 
-func UploadFrom(filename string, metadata interface{}, reader io.Reader) (id primitive.ObjectID, err error) {
+func UploadFrom(filename string, metadata any, reader io.Reader) (id primitive.ObjectID, err error) {
 	if bucket == nil {
 		return _id, ErrDisconnect
 	}
@@ -66,7 +66,7 @@ func Remove(id primitive.ObjectID) error {
 	return bucket.Delete(id)
 }
 
-func FindFile(filter interface{}, sort interface{}, skip int32, limit int32, results interface{}) error {
+func FindFile(filter any, sort any, skip int32, limit int32, results any) error {
 	if bucket == nil {
 		return ErrDisconnect
 	}

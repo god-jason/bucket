@@ -2,12 +2,13 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Search(tab *table.Table, after func(doc []table.Document) error) gin.HandlerFunc {
+func Search(tab *table.Table, after func(doc []db.Document) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body table.SearchBody
 		err := ctx.ShouldBindJSON(&body)
@@ -83,7 +84,7 @@ func Search(tab *table.Table, after func(doc []table.Document) error) gin.Handle
 			pipeline = append(pipeline, project)
 		}
 
-		var results []table.Document
+		var results []db.Document
 		err = tab.Aggregate(pipeline, &results)
 		if err != nil {
 			Error(ctx, err)

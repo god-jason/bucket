@@ -11,7 +11,7 @@ func ApiCount(ctx *gin.Context) {
 		return
 	}
 
-	var filter interface{}
+	var filter any
 	err = ctx.ShouldBindJSON(&filter)
 	if err != nil {
 		Error(ctx, err)

@@ -55,7 +55,7 @@ func aggregateGroup(ctx *gin.Context) {
 	group := bson.D{{"$group", groups}}
 	pipeline = append(pipeline, group)
 
-	var results []table.Document
+	var results []db.Document
 	err = db.Aggregate(base.BucketAggregate, pipeline, &results)
 	if err != nil {
 		api.Error(ctx, err)

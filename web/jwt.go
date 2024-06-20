@@ -24,7 +24,7 @@ func JwtGenerate(id string) (string, error) {
 
 func JwtVerify(str string) (*Claims, error) {
 	var claims Claims
-	token, err := jwt.ParseWithClaims(str, &claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(str, &claims, func(token *jwt.Token) (any, error) {
 		return config.GetString(MODULE, "jwt_key"), nil
 	})
 	if token.Valid {

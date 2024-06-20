@@ -12,7 +12,7 @@ func ApiCreate(ctx *gin.Context) {
 		return
 	}
 
-	var doc Document
+	var doc db.Document
 	err = ctx.ShouldBindJSON(&doc)
 	if err != nil {
 		Error(ctx, err)

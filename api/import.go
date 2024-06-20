@@ -7,9 +7,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func Create(tab *table.Table, after func(id primitive.ObjectID) error) gin.HandlerFunc {
+func Import(tab *table.Table, after func(id []primitive.ObjectID) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var doc db.Document
+		var doc []db.Document
 		err := ctx.ShouldBind(&doc)
 		if err != nil {
 			Error(ctx, err)
@@ -18,7 +18,7 @@ func Create(tab *table.Table, after func(id primitive.ObjectID) error) gin.Handl
 
 		db.ConvertObjectId(doc)
 
-		id, err := tab.Insert(doc)
+		id, err := tab.Import(doc)
 		if err != nil {
 			Error(ctx, err)
 			return

@@ -11,7 +11,7 @@ import (
 
 var ErrDisconnect = errors.New("数据库未连接")
 
-func Aggregate(tab string, pipeline interface{}, results interface{}) error {
+func Aggregate(tab string, pipeline any, results any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -29,7 +29,7 @@ func BulkWrite(tab string, models []mongo.WriteModel) (*mongo.BulkWriteResult, e
 	return db.Collection(tab).BulkWrite(context.Background(), models)
 }
 
-func InsertOne(tab string, doc interface{}) (id primitive.ObjectID, err error) {
+func InsertOne(tab string, doc any) (id primitive.ObjectID, err error) {
 	if db == nil {
 		return _id, ErrDisconnect
 	}
@@ -40,7 +40,7 @@ func InsertOne(tab string, doc interface{}) (id primitive.ObjectID, err error) {
 	return ParseObjectId(ret.InsertedID)
 }
 
-func InsertMany(tab string, docs []interface{}) (ids []interface{}, err error) {
+func InsertMany(tab string, docs []any) (ids []primitive.ObjectID, err error) {
 	if db == nil {
 		return nil, ErrDisconnect
 	}
@@ -48,10 +48,16 @@ func InsertMany(tab string, docs []interface{}) (ids []interface{}, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return ret.InsertedIDs, nil
+	for _, id := range ret.InsertedIDs {
+		oid, err := ParseObjectId(id)
+		if err == nil {
+			ids = append(ids, oid)
+		}
+	}
+	return ids, nil
 }
 
-func DeleteOne(tab string, filter interface{}) (int64, error) {
+func DeleteOne(tab string, filter any) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -62,7 +68,7 @@ func DeleteOne(tab string, filter interface{}) (int64, error) {
 	return ret.DeletedCount, nil
 }
 
-func DeleteMany(tab string, filter interface{}) (int64, error) {
+func DeleteMany(tab string, filter any) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -84,7 +90,7 @@ func DeleteById(tab string, id primitive.ObjectID) (int64, error) {
 	return ret.DeletedCount, nil
 }
 
-func ReplaceOne(tab string, filter interface{}, result interface{}, upsert bool) (int64, error) {
+func ReplaceOne(tab string, filter any, result any, upsert bool) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -96,7 +102,7 @@ func ReplaceOne(tab string, filter interface{}, result interface{}, upsert bool)
 	return ret.ModifiedCount, nil
 }
 
-func UpdateOne(tab string, filter interface{}, update interface{}, upsert bool) (int64, error) {
+func UpdateOne(tab string, filter any, update any, upsert bool) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -108,7 +114,7 @@ func UpdateOne(tab string, filter interface{}, update interface{}, upsert bool) 
 	return ret.ModifiedCount, nil
 }
 
-func UpdateMany(tab string, filter interface{}, update interface{}) (int64, error) {
+func UpdateMany(tab string, filter any, update any) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -119,7 +125,7 @@ func UpdateMany(tab string, filter interface{}, update interface{}) (int64, erro
 	return ret.ModifiedCount, nil
 }
 
-func UpdateById(tab string, id primitive.ObjectID, update interface{}, upsert bool) (int64, error) {
+func UpdateById(tab string, id primitive.ObjectID, update any, upsert bool) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -131,7 +137,7 @@ func UpdateById(tab string, id primitive.ObjectID, update interface{}, upsert bo
 	return ret.ModifiedCount, nil
 }
 
-func Find(tab string, filter interface{}, sort interface{}, skip int64, limit int64, results interface{}) error {
+func Find(tab string, filter any, sort any, skip int64, limit int64, results any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -154,7 +160,7 @@ func Find(tab string, filter interface{}, sort interface{}, skip int64, limit in
 	return ret.All(context.Background(), results)
 }
 
-func FindOne(tab string, filter interface{}, result interface{}) error {
+func FindOne(tab string, filter any, result any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -162,7 +168,7 @@ func FindOne(tab string, filter interface{}, result interface{}) error {
 	return ret.Decode(result)
 }
 
-func FindOneAndDelete(tab string, filter interface{}, raw interface{}) error {
+func FindOneAndDelete(tab string, filter any, raw any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -170,7 +176,7 @@ func FindOneAndDelete(tab string, filter interface{}, raw interface{}) error {
 	return ret.Decode(raw)
 }
 
-func FindOneAndUpdate(tab string, filter interface{}, update interface{}, raw interface{}) error {
+func FindOneAndUpdate(tab string, filter any, update any, raw any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -178,7 +184,7 @@ func FindOneAndUpdate(tab string, filter interface{}, update interface{}, raw in
 	return ret.Decode(raw)
 }
 
-func FindOneAndReplace(tab string, filter interface{}, replace interface{}, raw interface{}) error {
+func FindOneAndReplace(tab string, filter any, replace any, raw any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -186,7 +192,7 @@ func FindOneAndReplace(tab string, filter interface{}, replace interface{}, raw 
 	return ret.Decode(raw)
 }
 
-func FindById(tab string, id primitive.ObjectID, result interface{}) error {
+func FindById(tab string, id primitive.ObjectID, result any) error {
 	if db == nil {
 		return ErrDisconnect
 	}
@@ -194,7 +200,7 @@ func FindById(tab string, id primitive.ObjectID, result interface{}) error {
 	return ret.Decode(result)
 }
 
-func Count(tab string, filter interface{}) (count int64, err error) {
+func Count(tab string, filter any) (count int64, err error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
@@ -208,7 +214,7 @@ func Drop(tab string) error {
 	return db.Collection(tab).Drop(context.Background())
 }
 
-func Distinct(tab string, filter interface{}, field string) (values []interface{}, err error) {
+func Distinct(tab string, filter any, field string) (values []any, err error) {
 	if db == nil {
 		return nil, ErrDisconnect
 	}

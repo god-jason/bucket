@@ -25,7 +25,7 @@ func EmptyObjectId() primitive.ObjectID {
 
 func ConvertObjectId(doc any) {
 	switch val := doc.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for k, v := range val {
 			if strings.HasSuffix(k, "_id") {
 				val[k], _ = ParseObjectId(v)
@@ -33,7 +33,7 @@ func ConvertObjectId(doc any) {
 			}
 			ConvertObjectId(v)
 		}
-	case []interface{}:
+	case []any:
 		for _, v := range val {
 			ConvertObjectId(v)
 		}

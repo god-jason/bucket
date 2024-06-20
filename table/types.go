@@ -1,7 +1,5 @@
 package table
 
-type Document map[string]interface{}
-
 type Foreign struct {
 	Table string `json:"table,omitempty"`
 	Field string `json:"field,omitempty"`

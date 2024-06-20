@@ -29,7 +29,7 @@ func ApiImport(table string) gin.HandlerFunc {
 			return
 		}
 
-		var idss []interface{}
+		var idss []any
 		//数据解析
 		for _, file := range reader.File {
 			if file.FileInfo().IsDir() {
@@ -43,7 +43,7 @@ func ApiImport(table string) gin.HandlerFunc {
 				return
 			}
 
-			var data []interface{}
+			var data []any
 			err = json.Unmarshal(buf, &data)
 			if err != nil {
 				Error(ctx, err)

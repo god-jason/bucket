@@ -2,13 +2,14 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Group(tab *table.Table, after func(doc []table.Document) error) gin.HandlerFunc {
+func Group(tab *table.Table, after func(doc []db.Document) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body table.GroupBody
 		err := ctx.ShouldBindJSON(&body)
@@ -49,7 +50,7 @@ func Group(tab *table.Table, after func(doc []table.Document) error) gin.Handler
 		group := bson.D{{"$group", groups}}
 		pipeline = append(pipeline, group)
 
-		var results []table.Document
+		var results []db.Document
 		err = tab.Aggregate(pipeline, &results)
 		if err != nil {
 			Error(ctx, err)

@@ -9,7 +9,7 @@ import (
 var Pool *ants.Pool
 
 func Startup() (err error) {
-	Pool, err = ants.NewPool(config.GetInt(MODULE, "size"), ants.WithPanicHandler(func(err interface{}) {
+	Pool, err = ants.NewPool(config.GetInt(MODULE, "size"), ants.WithPanicHandler(func(err any) {
 		log.Error(err)
 	}))
 	return

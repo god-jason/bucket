@@ -67,7 +67,7 @@ func (h *IncomingHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Pa
 		//池化处理，避免拥堵
 		_ = pool.Insert(func() {
 			//解析数据，仅支持json格式（虽然效率低了点，但是没办法，大家都在用）
-			//var payload map[string]interface{}
+			//var payload map[string]any
 			//if len(pk.Payload) > 0 {
 			//	err := json.Unmarshal(pk.Payload, &payload)
 			//	if err != nil {

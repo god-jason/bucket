@@ -3,7 +3,7 @@ package history
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/table"
+	"github.com/god-jason/bucket/db"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,7 +15,7 @@ func init() {
 }
 
 type SearchBody struct {
-	Tags   interface{}       `json:"tags,omitempty"`   //tags过滤器
+	Tags   any               `json:"tags,omitempty"`   //tags过滤器
 	Values map[string]string `json:"values,omitempty"` //values显示 sum avg min max first last median
 	Begin  time.Time         `json:"begin"`            //开始时间
 	End    time.Time         `json:"end"`              //结束时间
@@ -62,7 +62,7 @@ func historySearch(ctx *gin.Context) {
 	pipeline = append(pipeline, bson.D{{"$set", bson.D{{"date", "$_id"}}}})
 	pipeline = append(pipeline, bson.D{{"$unset", "_id"}})
 
-	var results []table.Document
+	var results []db.Document
 	err = _table.Aggregate(pipeline, &results)
 	if err != nil {
 		api.Error(ctx, err)

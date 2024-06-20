@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func Detail(tab *table.Table, after func(id primitive.ObjectID, doc table.Document) error) gin.HandlerFunc {
+func Detail(tab *table.Table, after func(id primitive.ObjectID, doc db.Document) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, err := db.ParseObjectId(ctx.Param("id"))
 		if err != nil {
@@ -15,7 +15,7 @@ func Detail(tab *table.Table, after func(id primitive.ObjectID, doc table.Docume
 			return
 		}
 
-		var doc table.Document
+		var doc db.Document
 		err = tab.Get(id, &doc)
 		if err != nil {
 			Error(ctx, err)

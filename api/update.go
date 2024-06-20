@@ -17,7 +17,7 @@ func Update(tab *table.Table, after func(id primitive.ObjectID) error) gin.Handl
 			return
 		}
 
-		var update table.Document
+		var update db.Document
 		err = ctx.ShouldBind(&update)
 		if err != nil {
 			Error(ctx, err)

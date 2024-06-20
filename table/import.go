@@ -2,6 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/db"
 )
 
 func ApiImport(ctx *gin.Context) {
@@ -11,7 +12,7 @@ func ApiImport(ctx *gin.Context) {
 		return
 	}
 
-	var doc []Document
+	var doc []db.Document
 	err = ctx.ShouldBindJSON(&doc)
 	if err != nil {
 		Error(ctx, err)

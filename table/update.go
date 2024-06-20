@@ -18,7 +18,7 @@ func ApiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var update Document
+	var update db.Document
 	err = ctx.ShouldBindJSON(&update)
 	if err != nil {
 		Error(ctx, err)

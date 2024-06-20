@@ -13,7 +13,7 @@ type ExpireCache struct {
 }
 
 type cacheItem struct {
-	value    interface{}
+	value    any
 	expireAt int64
 }
 
@@ -21,7 +21,7 @@ func (c *ExpireCache) Delete(key string) {
 	c.mp.Delete(key)
 }
 
-func (c *ExpireCache) Load(key string) (interface{}, bool) {
+func (c *ExpireCache) Load(key string) (any, bool) {
 	if i, ok := c.mp.Load(key); ok {
 		item := i.(*cacheItem)
 		item.expireAt = time.Now().Unix() + c.Timeout
@@ -30,7 +30,7 @@ func (c *ExpireCache) Load(key string) (interface{}, bool) {
 	return nil, false
 }
 
-func (c *ExpireCache) Store(key string, value interface{}) {
+func (c *ExpireCache) Store(key string, value any) {
 	c.mp.Store(key, &cacheItem{value: value, expireAt: time.Now().Unix() + c.Timeout})
 
 	if c.tm == nil {

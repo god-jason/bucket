@@ -18,7 +18,7 @@ func ApiDetail(ctx *gin.Context) {
 		return
 	}
 
-	var doc Document
+	var doc db.Document
 	err = table.Get(id, &doc)
 	if err != nil {
 		Error(ctx, err)

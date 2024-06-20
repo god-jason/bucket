@@ -7,7 +7,7 @@ import (
 
 func Count(tab *table.Table) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var filter interface{}
+		var filter any
 		err := ctx.ShouldBindJSON(&filter)
 		if err != nil {
 			Error(ctx, err)

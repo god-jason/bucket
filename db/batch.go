@@ -17,27 +17,27 @@ type Batch struct {
 	timer  *time.Timer
 }
 
-func (b *Batch) InsertOne(doc interface{}) {
+func (b *Batch) InsertOne(doc any) {
 	model := mongo.NewInsertOneModel().SetDocument(doc)
 	b.Write(model)
 }
 
-func (b *Batch) UpdateOne(filter interface{}, update interface{}, upsert bool) {
+func (b *Batch) UpdateOne(filter any, update any, upsert bool) {
 	model := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(upsert)
 	b.Write(model)
 }
 
-func (b *Batch) UpdateMany(filter interface{}, update interface{}, upsert bool) {
+func (b *Batch) UpdateMany(filter any, update any, upsert bool) {
 	model := mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(upsert)
 	b.Write(model)
 }
 
-func (b *Batch) DeleteOne(filter interface{}) {
+func (b *Batch) DeleteOne(filter any) {
 	model := mongo.NewDeleteOneModel().SetFilter(filter)
 	b.Write(model)
 }
 
-func (b *Batch) DeleteMany(filter interface{}) {
+func (b *Batch) DeleteMany(filter any) {
 	model := mongo.NewDeleteManyModel().SetFilter(filter)
 	b.Write(model)
 }

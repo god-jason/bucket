@@ -1,6 +1,6 @@
 package convert
 
-func ToBool(value interface{}) bool {
+func ToBool(value any) bool {
 	switch val := value.(type) {
 	case bool:
 		return val
@@ -32,7 +32,7 @@ func ToBool(value interface{}) bool {
 	return false
 }
 
-func ToUint8(value interface{}) uint8 {
+func ToUint8(value any) uint8 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -68,7 +68,7 @@ func ToUint8(value interface{}) uint8 {
 	return 0
 }
 
-func ToUint16(value interface{}) uint16 {
+func ToUint16(value any) uint16 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -104,7 +104,7 @@ func ToUint16(value interface{}) uint16 {
 	return 0
 }
 
-func ToUint32(value interface{}) uint32 {
+func ToUint32(value any) uint32 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -140,7 +140,7 @@ func ToUint32(value interface{}) uint32 {
 	return 0
 }
 
-func ToUint64(value interface{}) uint64 {
+func ToUint64(value any) uint64 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -176,7 +176,7 @@ func ToUint64(value interface{}) uint64 {
 	return 0
 }
 
-func ToInt8(value interface{}) int8 {
+func ToInt8(value any) int8 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -212,7 +212,7 @@ func ToInt8(value interface{}) int8 {
 	return 0
 }
 
-func ToInt16(value interface{}) int16 {
+func ToInt16(value any) int16 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -248,7 +248,7 @@ func ToInt16(value interface{}) int16 {
 	return 0
 }
 
-func ToInt32(value interface{}) int32 {
+func ToInt32(value any) int32 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -284,7 +284,7 @@ func ToInt32(value interface{}) int32 {
 	return 0
 }
 
-func ToInt64(value interface{}) int64 {
+func ToInt64(value any) int64 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -320,7 +320,7 @@ func ToInt64(value interface{}) int64 {
 	return 0
 }
 
-func ToFloat32(value interface{}) float32 {
+func ToFloat32(value any) float32 {
 	switch val := value.(type) {
 	case bool:
 		if val {
@@ -356,7 +356,7 @@ func ToFloat32(value interface{}) float32 {
 	return 0
 }
 
-func ToFloat64(value interface{}) float64 {
+func ToFloat64(value any) float64 {
 	switch val := value.(type) {
 	case bool:
 		if val {

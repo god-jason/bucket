@@ -8,7 +8,7 @@ import (
 
 type Expression gval.Evaluable
 
-func toFloat64(val interface{}) float64 {
+func toFloat64(val any) float64 {
 	switch x := val.(type) {
 	case float32:
 		return float64(x)
@@ -41,15 +41,15 @@ func toFloat64(val interface{}) float64 {
 	}
 }
 
-func tarFunc(fun func(x float64) float64) func(x interface{}) float64 {
-	return func(x interface{}) float64 {
+func tarFunc(fun func(x float64) float64) func(x any) float64 {
+	return func(x any) float64 {
 		xx := toFloat64(x)
 		return fun(xx)
 	}
 }
 
-func tarFunc2(fun func(x, y float64) float64) func(x, y interface{}) float64 {
-	return func(x, y interface{}) float64 {
+func tarFunc2(fun func(x, y float64) float64) func(x, y any) float64 {
+	return func(x, y any) float64 {
 		xx := toFloat64(x)
 		yy := toFloat64(y)
 		return fun(xx, yy)

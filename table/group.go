@@ -2,6 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/db"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,11 +15,11 @@ type Group struct {
 }
 
 type GroupBody struct {
-	Filter map[string]interface{} `json:"filter,omitempty"`
-	Field  string                 `json:"field,omitempty"`
-	Groups []Group                `json:"groups,omitempty"`
-	Step   int                    `json:"step,omitempty"` //步长
-	Unit   string                 `json:"unit,omitempty"` //单位 year month week day hour minute second
+	Filter map[string]any `json:"filter,omitempty"`
+	Field  string         `json:"field,omitempty"`
+	Groups []Group        `json:"groups,omitempty"`
+	Step   int            `json:"step,omitempty"` //步长
+	Unit   string         `json:"unit,omitempty"` //单位 year month week day hour minute second
 
 	//Format string                 `json:"format,omitempty"` //日期格式 支持 $dateToString %Y-%m-%d %H:%M:%S
 }
@@ -79,7 +80,7 @@ func ApiGroup(ctx *gin.Context) {
 	group := bson.D{{"$group", groups}}
 	pipeline = append(pipeline, group)
 
-	var results []Document
+	var results []db.Document
 	err = table.Aggregate(pipeline, &results)
 	if err != nil {
 		Error(ctx, err)
