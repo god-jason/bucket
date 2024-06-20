@@ -12,6 +12,7 @@ func init() {
 	Register("POST", "table/:table/group", table.ApiGroup)
 	Register("POST", "table/:table/search", table.ApiSearch)
 	Register("POST", "table/:table/import", table.ApiImport)
+	Register("POST", "table/:table/export", table.ApiExport)
 	Register("GET", "table/:table", table.ApiManifest)
 	Register("POST", "table/:table", table.ApiManifestUpdate)
 }
