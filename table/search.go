@@ -2,14 +2,9 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/api"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-func init() {
-	api.Register("POST", "table/:table/search", apiSearch)
-}
 
 type SearchBody struct {
 	Filter map[string]interface{} `json:"filter,omitempty"`
@@ -20,7 +15,7 @@ type SearchBody struct {
 	//Keyword string
 }
 
-func apiSearch(ctx *gin.Context) {
+func ApiSearch(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		Error(ctx, err)

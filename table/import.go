@@ -2,14 +2,9 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/api"
 )
 
-func init() {
-	api.Register("POST", "table/:table/import", Import)
-}
-
-func Import(ctx *gin.Context) {
+func ApiImport(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		Error(ctx, err)

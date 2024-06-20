@@ -2,17 +2,10 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/db"
 )
 
-func init() {
-	api.Register("GET", "table/:table/delete/:id", apiDelete)
-	api.Register("DELETE", "table/:table/delete/:id", apiDelete)
-	//api.Register("POST", "table/:table/delete", DeleteMany)
-}
-
-func apiDelete(ctx *gin.Context) {
+func ApiDelete(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		Error(ctx, err)

@@ -2,15 +2,10 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/api"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-func init() {
-	api.Register("POST", "table/:table/group", apiGroup)
-}
 
 type Group struct {
 	Operator string `json:"operator,omitempty"` //sum count avg min max first last push
@@ -28,7 +23,7 @@ type GroupBody struct {
 	//Format string                 `json:"format,omitempty"` //日期格式 支持 $dateToString %Y-%m-%d %H:%M:%S
 }
 
-func apiGroup(ctx *gin.Context) {
+func ApiGroup(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		Error(ctx, err)

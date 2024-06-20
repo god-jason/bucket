@@ -1,6 +1,7 @@
 package history
 
 import (
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,7 +20,7 @@ var _tags = []*table.Field{
 }
 
 var _table = table.Table{
-	Name:   db.BucketHistory,
+	Name:   base.BucketHistory,
 	Schema: nil,
 	Fields: []*table.Field{
 		{Name: "tags", Label: "标签", Type: "object", Children: _tags},

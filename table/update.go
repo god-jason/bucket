@@ -2,15 +2,10 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/db"
 )
 
-func init() {
-	api.Register("POST", "table/:table/update/:id", apiUpdate)
-}
-
-func apiUpdate(ctx *gin.Context) {
+func ApiUpdate(ctx *gin.Context) {
 	table, err := Get(ctx.Param("table"))
 	if err != nil {
 		Error(ctx, err)
