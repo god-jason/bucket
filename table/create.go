@@ -2,6 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/db"
 )
 
 func ApiCreate(ctx *gin.Context) {
@@ -17,6 +18,8 @@ func ApiCreate(ctx *gin.Context) {
 		Error(ctx, err)
 		return
 	}
+
+	db.ConvertObjectId(doc)
 
 	id, err := table.Insert(doc)
 	if err != nil {

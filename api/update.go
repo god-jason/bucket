@@ -24,6 +24,8 @@ func Update(tab *table.Table, after func(id primitive.ObjectID) error) gin.Handl
 			return
 		}
 
+		db.ConvertObjectId(update)
+
 		err = tab.Update(oid, bson.D{{"$set", update}})
 		if err != nil {
 			Error(ctx, err)

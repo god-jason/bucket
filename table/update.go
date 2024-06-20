@@ -18,14 +18,16 @@ func ApiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var doc Document
-	err = ctx.ShouldBindJSON(&doc)
+	var update Document
+	err = ctx.ShouldBindJSON(&update)
 	if err != nil {
 		Error(ctx, err)
 		return
 	}
 
-	err = table.Update(id, doc)
+	db.ConvertObjectId(update)
+
+	err = table.Update(id, update)
 	if err != nil {
 		Error(ctx, err)
 		return
