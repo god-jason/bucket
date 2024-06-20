@@ -23,4 +23,8 @@ func init() {
 
 	api.Register("POST", "gateway/group", api.Group(&_table, nil))
 
+	api.Register("POST", "gateway/import", api.Import(&_table, nil))
+
+	api.Register("POST", "gateway/export", api.Export(&_table))
+
 }

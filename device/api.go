@@ -47,4 +47,11 @@ func init() {
 
 	api.Register("POST", "device/group", api.Group(&_table, nil))
 
+	api.Register("POST", "device/import", api.Import(&_table, func(id []primitive.ObjectID) error {
+		//todo 依次加载
+		return nil
+	}))
+
+	api.Register("POST", "device/export", api.Export(&_table))
+
 }

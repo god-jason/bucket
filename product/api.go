@@ -27,4 +27,11 @@ func init() {
 
 	api.Register("POST", "product/group", api.Group(&_table, nil))
 
+	api.Register("POST", "product/import", api.Import(&_table, func(id []primitive.ObjectID) error {
+		//TODO 加载
+		return nil
+	}))
+
+	api.Register("POST", "product/export", api.Export(&_table))
+
 }

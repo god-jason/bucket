@@ -12,10 +12,13 @@ func init() {
 	api.Register("POST", "validator/count", api.Count(&_validatorTable))
 	api.Register("POST", "validator/search", api.Search(&_validatorTable, nil))
 	api.Register("POST", "validator/group", api.Group(&_validatorTable, nil))
+	api.Register("POST", "validator/import", api.Import(&_validatorTable, nil))
+	api.Register("POST", "validator/export", api.Export(&_validatorTable))
 }
 
 func init() {
-	api.Register("POST", "alarm/count", api.Count(&_validatorTable))
-	api.Register("POST", "alarm/search", api.Search(&_validatorTable, nil))
-	api.Register("POST", "alarm/group", api.Group(&_validatorTable, nil))
+	api.Register("POST", "alarm/search", api.Search(&_alarmTable, nil))
+	api.Register("POST", "alarm/group", api.Group(&_alarmTable, nil))
+	api.Register("POST", "alarm/export", api.Export(&_alarmTable))
+	api.Register("POST", "alarm/count", api.Count(&_alarmTable))
 }

@@ -12,6 +12,7 @@ import (
 
 func init() {
 	api.Register("POST", "history/search", historySearch)
+	//api.Register("POST", "gateway/export", api.Export(&_table))
 }
 
 type SearchBody struct {

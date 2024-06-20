@@ -15,4 +15,6 @@ func init() {
 
 	api.Register("POST", "action/search", api.Search(&_table, nil))
 
+	api.Register("POST", "action/export", api.Export(&_table))
+
 }
