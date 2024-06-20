@@ -25,7 +25,11 @@ func (t *Table) init() error {
 	return nil
 }
 
-func (t *Table) Aggregate(pipeline any, results *[]db.Document) error {
+func (t *Table) Aggregate(pipeline any, results any) error {
+	return db.Aggregate(t.Name, pipeline, results)
+}
+
+func (t *Table) AggregateDocument(pipeline any, results *[]db.Document) error {
 	return db.Aggregate(t.Name, pipeline, results)
 }
 
@@ -71,7 +75,28 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	return ret, nil
 }
 
-func (t *Table) Import(docs []db.Document) (ids []primitive.ObjectID, err error) {
+func (t *Table) Import(docs []any) (ids []primitive.ObjectID, err error) {
+
+	//没有hook，则直接InsertMany
+	if t.Hooks != nil {
+		if _, ok := t.Hooks["before.insert"]; !ok {
+			if _, ok := t.Hooks["after.insert"]; !ok {
+				return db.InsertMany(t.Name, docs)
+			}
+		}
+	}
+
+	for _, doc := range docs {
+		id, err := t.Insert(doc)
+		if err != nil {
+			return ids, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
+func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, err error) {
 
 	//没有hook，则直接InsertMany
 	if t.Hooks != nil {
@@ -198,7 +223,11 @@ func (t *Table) Get(id primitive.ObjectID, result *db.Document) error {
 	return err
 }
 
-func (t *Table) Find(filter any, sort any, skip int64, limit int64, results *[]db.Document) error {
+func (t *Table) Find(filter any, sort any, skip int64, limit int64, results any) error {
+	return db.Find(t.Name, filter, sort, skip, limit, results)
+}
+
+func (t *Table) FindDocument(filter any, sort any, skip int64, limit int64, results *[]db.Document) error {
 	return db.Find(t.Name, filter, sort, skip, limit, results)
 }
 

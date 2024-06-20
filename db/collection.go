@@ -153,6 +153,10 @@ func Find(tab string, filter any, sort any, skip int64, limit int64, results any
 		opts.SetLimit(limit)
 	}
 
+	if filter == nil {
+		filter = bson.D{}
+	}
+
 	ret, err := db.Collection(tab).Find(context.Background(), filter, opts)
 	if err != nil {
 		return err

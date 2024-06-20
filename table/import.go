@@ -52,7 +52,7 @@ func ApiImport(ctx *gin.Context) {
 		}
 	}
 
-	ids, err := table.Import(doc)
+	ids, err := table.ImportDocument(doc)
 	if err != nil {
 		Error(ctx, err)
 		return

@@ -85,7 +85,7 @@ func Search(tab *table.Table, after func(doc []db.Document) error) gin.HandlerFu
 		}
 
 		var results []db.Document
-		err = tab.Aggregate(pipeline, &results)
+		err = tab.AggregateDocument(pipeline, &results)
 		if err != nil {
 			Error(ctx, err)
 			return

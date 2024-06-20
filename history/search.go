@@ -64,7 +64,7 @@ func historySearch(ctx *gin.Context) {
 	pipeline = append(pipeline, bson.D{{"$unset", "_id"}})
 
 	var results []db.Document
-	err = _table.Aggregate(pipeline, &results)
+	err = _table.AggregateDocument(pipeline, &results)
 	if err != nil {
 		api.Error(ctx, err)
 		return

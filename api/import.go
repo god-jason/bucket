@@ -51,7 +51,7 @@ func Import(tab *table.Table, after func(id []primitive.ObjectID) error) gin.Han
 
 		db.ConvertObjectId(doc)
 
-		id, err := tab.Import(doc)
+		id, err := tab.ImportDocument(doc)
 		if err != nil {
 			Error(ctx, err)
 			return

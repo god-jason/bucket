@@ -81,7 +81,7 @@ func ApiGroup(ctx *gin.Context) {
 	pipeline = append(pipeline, group)
 
 	var results []db.Document
-	err = table.Aggregate(pipeline, &results)
+	err = table.AggregateDocument(pipeline, &results)
 	if err != nil {
 		Error(ctx, err)
 		return
