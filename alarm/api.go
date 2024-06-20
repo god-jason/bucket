@@ -5,11 +5,17 @@ import (
 )
 
 func init() {
-	api.Register("POST", "alarm/create", api.Create(&_table, nil))
-	api.Register("POST", "alarm/update/:id", api.Update(&_table, nil))
-	api.Register("GET", "alarm/delete/:id", api.Delete(&_table, nil))
-	api.Register("GET", "alarm/detail/:id", api.Detail(&_table, nil))
-	api.Register("POST", "alarm/count", api.Count(&_table))
-	api.Register("POST", "alarm/search", api.Search(&_table, nil))
-	api.Register("POST", "alarm/group", api.Group(&_table, nil))
+	api.Register("POST", "validator/create", api.Create(&_validatorTable, nil))
+	api.Register("POST", "validator/update/:id", api.Update(&_validatorTable, nil))
+	api.Register("GET", "validator/delete/:id", api.Delete(&_validatorTable, nil))
+	api.Register("GET", "validator/detail/:id", api.Detail(&_validatorTable, nil))
+	api.Register("POST", "validator/count", api.Count(&_validatorTable))
+	api.Register("POST", "validator/search", api.Search(&_validatorTable, nil))
+	api.Register("POST", "validator/group", api.Group(&_validatorTable, nil))
+}
+
+func init() {
+	api.Register("POST", "alarm/count", api.Count(&_validatorTable))
+	api.Register("POST", "alarm/search", api.Search(&_validatorTable, nil))
+	api.Register("POST", "alarm/group", api.Group(&_validatorTable, nil))
 }

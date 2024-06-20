@@ -175,3 +175,7 @@ func (d *Device) Action(action string, values map[string]any) (map[string]any, e
 
 	return nil, errors.New("不可到达")
 }
+
+func (d *Device) Values() map[string]any {
+	return d.values
+}

@@ -29,7 +29,7 @@ func (t *Table) Aggregate(pipeline interface{}, results *[]Document) error {
 	return db.Aggregate(t.Name, pipeline, results)
 }
 
-func (t *Table) Insert(doc Document) (id primitive.ObjectID, err error) {
+func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 
 	//检查
 	if t.Schema != nil {
@@ -53,7 +53,10 @@ func (t *Table) Insert(doc Document) (id primitive.ObjectID, err error) {
 	if err != nil {
 		return db.EmptyObjectId(), err
 	}
-	doc["_id"] = ret
+	if d, ok := doc.(map[string]any); ok {
+		d["_id"] = ret
+	}
+	//struct 类型用 反射
 
 	//after insert
 	if t.Hooks != nil {
