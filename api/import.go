@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,7 +15,7 @@ func Import(tab *table.Table, after func(ids []primitive.ObjectID) error) gin.Ha
 
 		//支持文件上传
 		if ctx.ContentType() == "multipart/form-data" {
-			files, err := base.FormFiles(ctx)
+			files, err := table.FormFiles(ctx)
 			if err != nil {
 				Error(ctx, err)
 				return

@@ -26,7 +26,7 @@ var _table = table.Table{
 			{Name: "weekday", Label: "星期", Type: "array", Required: true},
 		}},
 		//condition
-		{Name: "times", Label: "时间限制", Type: "array", Children: base.Fields},
+		{Name: "conditions", Label: "时间限制", Type: "array"},
 		{Name: "disabled", Label: "禁用", Type: "boolean"},
 		{Name: "created", Label: "创建日期", Type: "date"},
 	},

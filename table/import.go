@@ -3,7 +3,6 @@ package table
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"io"
 )
@@ -19,7 +18,7 @@ func ApiImport(ctx *gin.Context) {
 
 	//支持文件上传
 	if ctx.ContentType() == "multipart/form-data" {
-		files, err := base.FormFiles(ctx)
+		files, err := FormFiles(ctx)
 		if err != nil {
 			Error(ctx, err)
 			return
