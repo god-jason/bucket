@@ -159,7 +159,7 @@ func Find(tab string, filter any, sort any, skip int64, limit int64, results any
 	}
 
 	if filter == nil {
-		filter = bson.D{{}}
+		filter = bson.M{}
 	}
 
 	ret, err := db.Collection(tab).Find(context.Background(), filter, opts)

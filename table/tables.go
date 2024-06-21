@@ -86,14 +86,15 @@ func Sync() error {
 
 	//这里锁了，合适不???
 	tables.Range(func(name string, table *Table) bool {
-		log.Println("table sync", name)
+		//log.Println("table sync", name)
 		for _, t := range tabs {
 			if t == name {
 				//todo 检查索引
-				log.Println("table sync", name, "skip")
+				//log.Println("table sync", name, "skip")
 				return true
 			}
 		}
+		log.Println("table sync", name)
 
 		//创建表
 		opts := options.CreateCollection()

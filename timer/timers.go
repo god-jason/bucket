@@ -50,3 +50,19 @@ func LoadAll() error {
 		return nil
 	})
 }
+
+func LoadBy(filter any, executor Executor) ([]*Timer, error) {
+	var ts []*Timer
+	err := _table.Find(filter, nil, 0, 0, &ts)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range ts {
+		err = From(t)
+		if err != nil {
+			log.Error(err)
+			//return err
+		}
+	}
+	return ts, nil
+}
