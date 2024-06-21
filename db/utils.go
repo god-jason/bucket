@@ -1,7 +1,7 @@
 package db
 
 import (
-	"errors"
+	"github.com/god-jason/bucket/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"strings"
 )

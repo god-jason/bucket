@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"errors"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
@@ -10,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/config"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/errors"
 	"net/http"
 	"path"
 	"strconv"

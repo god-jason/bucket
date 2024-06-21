@@ -1,9 +1,9 @@
 package alarm
 
 import (
-	"errors"
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"go.mongodb.org/mongo-driver/bson/primitive"

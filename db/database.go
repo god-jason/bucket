@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"github.com/god-jason/bucket/config"
+	"github.com/god-jason/bucket/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
@@ -33,7 +34,7 @@ func Open() error {
 	//连接
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	db = client.Database(config.GetString(MODULE, "database"))
@@ -42,10 +43,10 @@ func Open() error {
 	bucket, err = gridfs.NewBucket(db)
 	if err != nil {
 		_ = Close()
-		return err
+		return errors.Wrap(err)
 	}
 
-	return err
+	return nil
 }
 
 func Ping() error {
@@ -63,14 +64,19 @@ func CreateTable(name string, opts *options.CreateCollectionOptions) error {
 	if db == nil {
 		return ErrDisconnect
 	}
-	return db.CreateCollection(context.Background(), name, opts)
+	err := db.CreateCollection(context.Background(), name, opts)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
 }
 
 func Tables() ([]string, error) {
 	if db == nil {
 		return nil, ErrDisconnect
 	}
-	return db.ListCollectionNames(context.Background(), bson.D{{}})
+	ret, err := db.ListCollectionNames(context.Background(), bson.D{{}})
+	return ret, errors.Wrap(err)
 }
 
 func Close() error {

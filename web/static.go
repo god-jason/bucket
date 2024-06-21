@@ -1,7 +1,7 @@
 package web
 
 import (
-	"errors"
+	"github.com/god-jason/bucket/pkg/errors"
 	"net/http"
 	"path"
 	"strings"

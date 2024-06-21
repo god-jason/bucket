@@ -3,6 +3,7 @@ package function
 import (
 	"encoding/json"
 	"github.com/god-jason/bucket/lib"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -16,18 +17,18 @@ func Load(name string) error {
 	fn := filepath.Join(viper.GetString("data"), Path, name+".json")
 	buf, err := os.ReadFile(fn)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	var function Function
 	err = json.Unmarshal(buf, &function)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	err = function.Compile()
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	functions.Store(name, &function)
@@ -42,7 +43,7 @@ func LoadAll() error {
 
 	es, err := os.ReadDir(d)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	for _, e := range es {

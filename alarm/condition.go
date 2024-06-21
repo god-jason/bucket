@@ -2,9 +2,9 @@ package alarm
 
 import (
 	"context"
-	"errors"
 	"github.com/PaesslerAG/gval"
 	"github.com/god-jason/bucket/pkg/calc"
+	"github.com/god-jason/bucket/pkg/errors"
 )
 
 type Condition struct {

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"github.com/god-jason/bucket/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -84,7 +85,8 @@ func FindFile(filter any, sort any, skip int32, limit int32, results any) error 
 
 	ret, err := bucket.Find(filter, opts)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
-	return ret.All(context.Background(), results)
+	err = ret.All(context.Background(), results)
+	return errors.Wrap(err)
 }

@@ -1,6 +1,9 @@
 package function
 
-import "github.com/dop251/goja"
+import (
+	"github.com/dop251/goja"
+	"github.com/god-jason/bucket/pkg/errors"
+)
 
 type Function struct {
 	Name   string
@@ -12,5 +15,5 @@ type Function struct {
 
 func (f *Function) Compile() (err error) {
 	f.program, err = goja.Compile(f.Name, f.Script, false)
-	return
+	return errors.Wrap(err)
 }

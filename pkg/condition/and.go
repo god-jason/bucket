@@ -1,6 +1,6 @@
 package condition
 
-import "errors"
+import "github.com/god-jason/bucket/pkg/errors"
 
 type And struct {
 	Compares []*Compare `json:"compares,omitempty"`

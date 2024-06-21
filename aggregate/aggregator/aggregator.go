@@ -1,8 +1,7 @@
 package aggregator
 
 import (
-	"errors"
-	"fmt"
+	"github.com/god-jason/bucket/pkg/errors"
 )
 
 var ErrorBlank = errors.New("无数据")
@@ -35,7 +34,7 @@ func New(typ string) (agg Aggregator, err error) {
 	case "last":
 		agg = &last{}
 	default:
-		err = fmt.Errorf("Unknown aggregate type %s ", typ)
+		err = errors.New("未知的聚合类型" + typ)
 	}
 	return
 }

@@ -1,6 +1,6 @@
 package condition
 
-import "errors"
+import "github.com/god-jason/bucket/pkg/errors"
 
 // Condition 条件，外OR，内And
 // 比如： （a>1 && b<2）||（c==2 && d<5）

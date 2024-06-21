@@ -2,6 +2,7 @@ package table
 
 import (
 	"github.com/dop251/goja"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/pkg/javascript"
 )
 
@@ -31,7 +32,7 @@ func (h *Hook) Run(context map[string]any) error {
 		_, err = runtime.RunProgram(h.program)
 		//打印返回值？？？
 		if err != nil {
-			return err
+			return errors.Wrap(err)
 		}
 	}
 	return nil

@@ -1,8 +1,8 @@
 package device
 
 import (
-	"errors"
 	"github.com/god-jason/bucket/aggregate/aggregator"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/product"
 	"github.com/mochi-mqtt/server/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"

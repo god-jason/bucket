@@ -2,10 +2,10 @@ package scene
 
 import (
 	"context"
-	"errors"
 	"github.com/PaesslerAG/gval"
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/pkg/calc"
+	"github.com/god-jason/bucket/pkg/errors"
 )
 
 //todo 条件 外or，内and，每个条件都要选具体设备
@@ -75,7 +75,7 @@ type Compare struct {
 
 func (c *Compare) Init() (err error) {
 	c.expr, err = calc.New(c.Variable + c.Operator + "(" + c.Value + ")")
-	return
+	return errors.Wrap(err)
 }
 
 func (c *Compare) Eval() (bool, error) {
@@ -84,5 +84,6 @@ func (c *Compare) Eval() (bool, error) {
 		return false, errors.New("设备未上线")
 	}
 
-	return c.expr.EvalBool(context.Background(), dev.Values())
+	ret, err := c.expr.EvalBool(context.Background(), dev.Values())
+	return ret, errors.Wrap(err)
 }
