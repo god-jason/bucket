@@ -2,24 +2,22 @@ package timer
 
 import (
 	"github.com/god-jason/bucket/api"
+	"github.com/god-jason/bucket/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
-	api.Register("POST", "timer/create", api.Create(&_table, func(id primitive.ObjectID) error {
-		return Load(id.Hex())
-	}))
+	api.Register("POST", "timer/create", api.Create(&_table, Load))
 
-	api.Register("POST", "timer/update/:id", api.Update(&_table, func(id primitive.ObjectID) error {
-		return Load(id.Hex())
-	}))
+	api.Register("POST", "timer/update/:id", api.Update(&_table, Load))
 
-	api.Register("GET", "timer/delete/:id", api.Delete(&_table, func(id primitive.ObjectID) error {
-		timers.Delete(id.Hex())
-		return nil
-	}))
+	api.Register("GET", "timer/delete/:id", api.Delete(&_table, Unload))
 
 	api.Register("GET", "timer/detail/:id", api.Detail(&_table, nil))
+
+	api.Register("GET", "timer/enable/:id", api.Update(&_table, Load))
+
+	api.Register("GET", "timer/disable/:id", api.Delete(&_table, Unload))
 
 	api.Register("POST", "timer/count", api.Count(&_table))
 
@@ -27,8 +25,13 @@ func init() {
 
 	api.Register("POST", "timer/group", api.Group(&_table, nil))
 
-	api.Register("POST", "timer/import", api.Import(&_table, func(id []primitive.ObjectID) error {
-		//TODO 加载
+	api.Register("POST", "timer/import", api.Import(&_table, func(ids []primitive.ObjectID) error {
+		for _, id := range ids {
+			err := Load(id)
+			if err != nil {
+				log.Error(err)
+			}
+		}
 		return nil
 	}))
 

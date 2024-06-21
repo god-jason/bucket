@@ -40,6 +40,12 @@ func Startup() error {
 		return err
 	}
 
+	//加载所有设备
+	err = LoadAll()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

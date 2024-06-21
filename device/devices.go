@@ -1,10 +1,10 @@
 package device
 
 import (
-	"errors"
-	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
+	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/table"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var devices lib.Map[Device]
@@ -13,41 +13,39 @@ func Get(id string) *Device {
 	return devices.Load(id)
 }
 
-func Load(id string) error {
-	oid, err := db.ParseObjectId(id)
-	if err != nil {
-		return err
+func From(v *Device) (err error) {
+	tt := devices.LoadAndStore(v.Id.Hex(), v)
+	if tt != nil {
+		_ = tt.Close()
 	}
-
-	var doc db.Document
-	err = db.FindById(base.BucketDevice, oid, &doc)
-	if err != nil {
-		return err
-	}
-
-	return From(doc)
+	return v.Open()
 }
 
-func From(doc db.Document) (err error) {
-	dev := new(Device)
-
-	if id, ok := doc["_id"]; !ok {
-		if dev.id, err = db.ParseObjectId(id); err != nil {
-			return errors.New("_id 类型不正确")
-		}
-	} else {
-		return errors.New("缺少 _id")
+func Load(id primitive.ObjectID) error {
+	var device Device
+	err := _table.Get(id, &device)
+	if err != nil {
+		return err
 	}
+	return From(&device)
+}
 
-	if id, ok := doc["product_id"]; !ok {
-		if dev.productId, err = db.ParseObjectId(id); err != nil {
-			return errors.New("product_id 类型不正确")
-		}
-	} else {
-		return errors.New("缺少 product_id")
+func Unload(id primitive.ObjectID) error {
+	t := devices.LoadAndDelete(id.Hex())
+	if t != nil {
+		return t.Close()
 	}
+	return nil
+}
 
-	devices.Store(dev.ID(), dev)
-
-	return dev.Open()
+func LoadAll() error {
+	return table.BatchLoad[*Device](&_table, nil, 100, func(t *Device) error {
+		//并行加载
+		err := From(t)
+		if err != nil {
+			log.Error(err)
+			//return err
+		}
+		return nil
+	})
 }

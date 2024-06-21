@@ -69,11 +69,12 @@ type Compare struct {
 	Operator string `json:"operator,omitempty"` //对比算子 > >= < <= !=
 	Value    string `json:"value,omitempty"`    //值，支持表达式
 
-	_value gval.Evaluable
+	watchers device.Watcher
+	expr     gval.Evaluable
 }
 
 func (c *Compare) Init() (err error) {
-	c._value, err = calc.New(c.Variable + c.Operator + "(" + c.Value + ")")
+	c.expr, err = calc.New(c.Variable + c.Operator + "(" + c.Value + ")")
 	return
 }
 
@@ -83,5 +84,5 @@ func (c *Compare) Eval() (bool, error) {
 		return false, errors.New("设备未上线")
 	}
 
-	return c._value.EvalBool(context.Background(), dev.Values())
+	return c.expr.EvalBool(context.Background(), dev.Values())
 }

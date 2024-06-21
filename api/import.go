@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-func Import(tab *table.Table, after func(id []primitive.ObjectID) error) gin.HandlerFunc {
+func Import(tab *table.Table, after func(ids []primitive.ObjectID) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var doc []db.Document
 
@@ -51,20 +51,20 @@ func Import(tab *table.Table, after func(id []primitive.ObjectID) error) gin.Han
 
 		db.ConvertObjectId(doc)
 
-		id, err := tab.ImportDocument(doc)
+		ids, err := tab.ImportDocument(doc)
 		if err != nil {
 			Error(ctx, err)
 			return
 		}
 
 		if after != nil {
-			err = after(id)
+			err = after(ids)
 			if err != nil {
 				Error(ctx, err)
 				return
 			}
 		}
 
-		OK(ctx, id)
+		OK(ctx, ids)
 	}
 }

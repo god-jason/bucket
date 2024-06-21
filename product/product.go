@@ -58,3 +58,8 @@ func (p *Product) Open() error {
 
 	return nil
 }
+
+func (p *Product) Close() error {
+
+	return nil
+}

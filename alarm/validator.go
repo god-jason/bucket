@@ -1,7 +1,11 @@
 package alarm
 
 import (
+	"errors"
+	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/project"
+	"github.com/god-jason/bucket/space"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -33,10 +37,46 @@ type Validator struct {
 }
 
 func (v *Validator) Init() error {
+
+	if v.ProjectId.IsZero() {
+		return errors.New("必须指定项目")
+	}
+
+	//过滤掉项目禁用的情况
+	prj := project.Get(v.ProjectId.Hex())
+	if prj == nil {
+		return errors.New("找不到项目")
+	}
+
+	if !v.DeviceId.IsZero() {
+		dev := device.Get(v.DeviceId.Hex())
+		if dev == nil {
+			return errors.New("找不到设备")
+		}
+		dev.Watch(v)
+	} else if !v.ProductId.IsZero() {
+		if !v.SpaceId.IsZero() {
+			spc := space.Get(v.SpaceId.Hex())
+			if spc == nil {
+				return errors.New("找不到空间")
+			}
+			for _, dev := range spc.Devices() {
+				dev.Watch(v)
+			}
+		} else {
+			for _, dev := range prj.Devices() {
+				dev.Watch(v)
+			}
+		}
+
+	} else {
+		return errors.New("没有指定设备和产品")
+	}
+
 	return v.Condition.Init()
 }
 
-func (v *Validator) Validate(ctx map[string]any) {
+func (v *Validator) OnDeviceValuesChange(ctx map[string]any) {
 	ret, err := v.Condition.Eval(ctx)
 	if err != nil {
 		log.Error(err)

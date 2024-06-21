@@ -1,8 +1,12 @@
 package scene
 
 import (
+	"errors"
 	"github.com/god-jason/bucket/base"
+	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/project"
+	"github.com/god-jason/bucket/space"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -29,11 +33,28 @@ type Scene struct {
 	last bool //上一次判断结果
 }
 
-func (s *Scene) Init() error {
+func (s *Scene) Open() error {
+	//todo 找设备，注册变化 watch
+	for _, c := range s.Conditions {
+		for _, cc := range c {
+			dev := device.Get(cc.DeviceId)
+			if dev == nil {
+				return errors.New("设备找不到")
+			}
+			dev.Watch(s)
+		}
+	}
+
 	return s.Condition.Init()
 }
 
-func (s *Scene) Check() {
+func (s *Scene) Close() error {
+	s.last = false
+	return nil
+}
+
+func (s *Scene) OnDeviceValuesChange(m map[string]any) {
+
 	//检查时间
 	if len(s.Times) > 0 {
 		now := time.Now()
@@ -79,7 +100,18 @@ func (s *Scene) Check() {
 	}
 
 	if ret && !s.last {
-		//todo 执行
+		//执行
+		if !s.SpaceId.IsZero() {
+			spc := space.Get(s.SpaceId.Hex())
+			if spc == nil {
+				spc.Execute(s.Actions)
+			}
+		} else if !s.ProjectId.IsZero() {
+			prj := project.Get(s.ProjectId.Hex())
+			if prj == nil {
+				prj.Execute(s.Actions)
+			}
+		}
 
 	}
 	s.last = ret

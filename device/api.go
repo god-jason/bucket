@@ -11,18 +11,11 @@ func init() {
 	}))
 
 	api.Register("POST", "device/update/:id", api.Update(&_table, func(id primitive.ObjectID) error {
-		dev := Get(id.Hex())
-		if dev != nil {
-			_ = dev.Close() //报错
-		}
 		return Load(id.Hex())
 	}))
 
 	api.Register("GET", "device/delete/:id", api.Delete(&_table, func(id primitive.ObjectID) error {
-		dev := Get(id.Hex())
-		if dev != nil {
-			return dev.Close() //报错
-		}
+		devices.Delete(id.Hex())
 		//todo 删除报警，场景，等
 		return nil
 	}))
@@ -34,10 +27,7 @@ func init() {
 	}))
 
 	api.Register("GET", "device/disable/:id", api.Disable(&_table, func(id primitive.ObjectID) error {
-		dev := Get(id.Hex())
-		if dev != nil {
-			return dev.Close() //报错
-		}
+		devices.Delete(id.Hex())
 		return nil
 	}))
 

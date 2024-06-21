@@ -1,11 +1,10 @@
 package product
 
 import (
-	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/god-jason/bucket/table"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var products lib.Map[Product]
@@ -14,40 +13,39 @@ func Get(id string) *Product {
 	return products.Load(id)
 }
 
-func Load(id string) error {
-	oid, err := db.ParseObjectId(id)
-	if err != nil {
-		return err
+func From(v *Product) (err error) {
+	tt := products.LoadAndStore(v.Id.Hex(), v)
+	if tt != nil {
+		_ = tt.Close()
 	}
-
-	var product Product
-	err = db.FindById(base.BucketProduct, oid, &product)
-	if err != nil {
-		return err
-	}
-
-	products.Store(id, &product)
-
-	return product.Open()
+	return v.Open()
 }
 
-func From(product *Product) error {
-	products.Store(product.Id.Hex(), product)
-	return product.Open()
+func Load(id primitive.ObjectID) error {
+	var product Product
+	err := _table.Get(id, &product)
+	if err != nil {
+		return err
+	}
+	return From(&product)
+}
+
+func Unload(id primitive.ObjectID) error {
+	t := products.LoadAndDelete(id.Hex())
+	if t != nil {
+		return t.Close()
+	}
+	return nil
 }
 
 func LoadAll() error {
-	var ps []*Product
-	err := db.Find(base.BucketProduct, bson.D{}, nil, 0, 0, &ps)
-	if err != nil {
-		return err
-	}
-	for _, p := range ps {
-		err := From(p)
+	return table.BatchLoad[*Product](&_table, nil, 100, func(t *Product) error {
+		//并行加载
+		err := From(t)
 		if err != nil {
 			log.Error(err)
 			//return err
 		}
-	}
-	return nil
+		return nil
+	})
 }

@@ -2,25 +2,22 @@ package scene
 
 import (
 	"github.com/god-jason/bucket/api"
+	"github.com/god-jason/bucket/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
-	api.Register("POST", "scene/create", api.Create(&_table, func(id primitive.ObjectID) error {
-		return Load(id.Hex())
-	}))
+	api.Register("POST", "scene/create", api.Create(&_table, Load))
 
-	api.Register("POST", "scene/update/:id", api.Update(&_table, func(id primitive.ObjectID) error {
-		return Load(id.Hex())
-	}))
+	api.Register("POST", "scene/update/:id", api.Update(&_table, Load))
 
-	api.Register("GET", "scene/delete/:id", api.Delete(&_table, func(id primitive.ObjectID) error {
-		scenes.Delete(id.Hex())
-		//todo 删除相关 空间，设备绑定，场景，定时，等
-		return nil
-	}))
+	api.Register("GET", "scene/delete/:id", api.Delete(&_table, Unload))
 
 	api.Register("GET", "scene/detail/:id", api.Detail(&_table, nil))
+
+	api.Register("GET", "scene/enable/:id", api.Update(&_table, Load))
+
+	api.Register("GET", "scene/disable/:id", api.Delete(&_table, Unload))
 
 	api.Register("POST", "scene/count", api.Count(&_table))
 
@@ -28,8 +25,13 @@ func init() {
 
 	api.Register("POST", "scene/group", api.Group(&_table, nil))
 
-	api.Register("POST", "scene/import", api.Import(&_table, func(id []primitive.ObjectID) error {
-		//TODO 加载
+	api.Register("POST", "scene/import", api.Import(&_table, func(ids []primitive.ObjectID) error {
+		for _, id := range ids {
+			err := Load(id)
+			if err != nil {
+				log.Error(err)
+			}
+		}
 		return nil
 	}))
 

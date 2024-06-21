@@ -204,7 +204,26 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	return err
 }
 
-func (t *Table) Get(id primitive.ObjectID, result *db.Document) error {
+func (t *Table) Get(id primitive.ObjectID, result any) error {
+	err := db.FindOne(t.Name, bson.D{{"_id", id}}, result)
+	if err != nil {
+		return err
+	}
+
+	//after get todo 没有太大必要
+	if t.Hooks != nil {
+		if hook, ok := t.Hooks["after.get"]; ok {
+			err := hook.Run(map[string]any{"id": id, "object": result})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+func (t *Table) GetDocument(id primitive.ObjectID, result *db.Document) error {
 	err := db.FindOne(t.Name, bson.D{{"_id", id}}, result)
 	if err != nil {
 		return err

@@ -15,7 +15,9 @@ type Aggregator struct {
 }
 
 type Device struct {
-	id primitive.ObjectID
+	Id        primitive.ObjectID `json:"_id" bson:"_id"`
+	ProductId primitive.ObjectID `json:"product_id" bson:"product_id"`
+	Name      string             `json:"name"`
 
 	//产品
 	productId primitive.ObjectID
@@ -32,10 +34,9 @@ type Device struct {
 
 	//网关连接
 	gatewayClient *mqtt.Client
-}
 
-func (d *Device) ID() string {
-	return d.id.Hex()
+	//监听
+	watchers map[Watcher]any
 }
 
 func (d *Device) Open() error {
@@ -63,11 +64,8 @@ func (d *Device) Open() error {
 
 	d.pendingActions = make(map[string]chan map[string]any)
 
-	return nil
-}
+	d.watchers = make(map[Watcher]any)
 
-func (d *Device) Close() error {
-	devices.Delete(d.id.Hex())
 	return nil
 }
 
@@ -87,7 +85,7 @@ func (d *Device) aggregate(now time.Time) {
 	}
 
 	if len(values) > 0 {
-		values["device_id"] = d.id
+		values["device_id"] = d.Id
 		values["date"] = now
 		//写入数据库，batch
 		aggregateStore.InsertOne(values)
@@ -117,14 +115,19 @@ func (d *Device) PatchValues(values map[string]any) {
 
 	//保存历史
 	if len(his) > 0 {
-		his["device_id"] = d.id
+		his["device_id"] = d.Id
 		his["date"] = time.Now()
 		historyStore.InsertOne(his)
+	}
+
+	//监听变化
+	for w, _ := range d.watchers {
+		w.OnDeviceValuesChange(d.values)
 	}
 }
 
 func (d *Device) WriteHistory(history map[string]any, timestamp int64) {
-	history["device_id"] = d.id
+	history["device_id"] = d.Id
 	history["date"] = time.UnixMilli(timestamp)
 	historyStore.InsertOne(history)
 }
@@ -145,7 +148,7 @@ func (d *Device) WriteValues(values map[string]any) error {
 
 	//向网关发送写指令
 	if d.gatewayClient != nil {
-		return publishDirectly(d.gatewayClient, "down/device/"+d.id.Hex()+"/property", values)
+		return publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/property", values)
 	}
 
 	return nil
@@ -158,7 +161,7 @@ func (d *Device) Action(action string, values map[string]any) (map[string]any, e
 	//向网关发送写指令
 	if d.gatewayClient != nil {
 		payload := PayloadAction{Action: action, Values: values}
-		err := publishDirectly(d.gatewayClient, "down/device/"+d.id.Hex()+"/action", &payload)
+		err := publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/action", &payload)
 		if err != nil {
 			return nil, err
 		}
@@ -178,4 +181,19 @@ func (d *Device) Action(action string, values map[string]any) (map[string]any, e
 
 func (d *Device) Values() map[string]any {
 	return d.values
+}
+
+func (d *Device) Watch(watcher Watcher) {
+
+}
+
+func (d *Device) UnWatch(watcher Watcher) {
+
+}
+
+func (d *Device) Close() error {
+
+	d.pendingActions = nil
+	d.watchers = nil
+	return nil
 }
