@@ -19,6 +19,10 @@ func From(t *Project) (err error) {
 	if tt != nil {
 		_ = tt.Close()
 	}
+	//禁用的不再打开
+	if t.Disabled {
+		return nil
+	}
 	return t.Open()
 }
 

@@ -12,7 +12,7 @@ func init() {
 	api.Register("GET", "project/delete/:id", api.Delete(&_table, Unload))
 	api.Register("GET", "project/detail/:id", api.Detail(&_table, nil))
 	api.Register("GET", "project/enable/:id", api.Enable(&_table, Load))
-	api.Register("GET", "project/disable/:id", api.Disable(&_table, Unload))
+	api.Register("GET", "project/disable/:id", api.Disable(&_table, Unload)) //todo open
 	api.Register("POST", "project/count", api.Count(&_table))
 	api.Register("POST", "project/search", api.Search(&_table, nil))
 	api.Register("POST", "project/group", api.Group(&_table, nil))
