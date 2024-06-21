@@ -3,7 +3,7 @@ package product
 import "github.com/god-jason/bucket/boot"
 
 func init() {
-	boot.Register("device", &boot.Task{
+	boot.Register("product", &boot.Task{
 		Startup:  Startup,
 		Shutdown: nil,
 		Depends:  []string{"web", "database", "log"},
