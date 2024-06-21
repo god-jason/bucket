@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"github.com/god-jason/bucket/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"sync"
 	"time"
@@ -52,8 +53,10 @@ func (b *Batch) Write(model mongo.WriteModel) {
 		//启动定时器
 		b.timer = time.AfterFunc(b.WriteTimeout, func() {
 			b.timer = nil
-			_, _ = b.Flush()
-			//TODO log
+			_, err := b.Flush()
+			if err != nil {
+				log.Error(err)
+			}
 		})
 	} else {
 		//满了就立即执行

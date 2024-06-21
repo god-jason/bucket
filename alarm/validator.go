@@ -144,3 +144,12 @@ func (v *Validator) OnDeviceValuesChange(ctx map[string]any) {
 	//todo 发送 mqtt
 
 }
+
+func (v *Validator) OnDeviceAdd(dev *device.Device) {
+	if v.DeviceId.IsZero() && !v.ProductId.IsZero() {
+		dev.Watch(v)
+	}
+}
+
+func (v *Validator) OnDeviceRemove(dev *device.Device) {
+}

@@ -13,9 +13,13 @@ type Space struct {
 	Disabled  bool               `json:"disabled"`
 
 	devices []*device.Device
+
+	watchers map[Watcher]any
 }
 
 func (s *Space) Open() error {
+	s.watchers = make(map[Watcher]any)
+
 	//todo 加载设备 加载场景
 	return nil
 }
@@ -30,4 +34,8 @@ func (s *Space) Execute(actions []*base.Action) {
 
 func (s *Space) Devices() []*device.Device {
 	return s.devices
+}
+
+func (s *Space) Watch(w Watcher) {
+	s.watchers[w] = 1
 }

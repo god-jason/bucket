@@ -34,7 +34,25 @@ type Scene struct {
 }
 
 func (s *Scene) Open() error {
-	//todo 找设备，注册变化 watch
+	if !s.SpaceId.IsZero() {
+		spc := space.Get(s.SpaceId.Hex())
+		if spc != nil {
+			spc.Watch(s)
+		} else {
+			return errors.New("找不到空间")
+		}
+	} else if !s.ProjectId.IsZero() {
+		prj := project.Get(s.ProjectId.Hex())
+		if prj != nil {
+			prj.Watch(s)
+		} else {
+			return errors.New("找不到项目")
+		}
+	} else {
+		return errors.New("无效场景")
+	}
+
+	//找设备，注册变化 watch
 	for _, c := range s.Conditions {
 		for _, cc := range c {
 			dev := device.Get(cc.DeviceId)
@@ -87,7 +105,7 @@ func (s *Scene) OnDeviceValuesChange(m map[string]any) {
 			has = true
 		}
 		if !has {
-			//todo
+			//没有合适的时间段
 			return
 		}
 	}
@@ -99,20 +117,35 @@ func (s *Scene) OnDeviceValuesChange(m map[string]any) {
 		return
 	}
 
+	//执行接口
 	if ret && !s.last {
 		//执行
 		if !s.SpaceId.IsZero() {
 			spc := space.Get(s.SpaceId.Hex())
-			if spc == nil {
+			if spc != nil {
 				spc.Execute(s.Actions)
 			}
 		} else if !s.ProjectId.IsZero() {
 			prj := project.Get(s.ProjectId.Hex())
-			if prj == nil {
+			if prj != nil {
 				prj.Execute(s.Actions)
 			}
 		}
 
 	}
 	s.last = ret
+}
+
+func (s *Scene) OnDeviceAdd(dev *device.Device) {
+}
+
+func (s *Scene) OnDeviceRemove(dev *device.Device) {
+	for _, c := range s.Conditions {
+		for _, cc := range c {
+			if cc.DeviceId == dev.Id.Hex() {
+				scenes.Delete(s.Id.Hex())
+				_ = s.Close()
+			}
+		}
+	}
 }
