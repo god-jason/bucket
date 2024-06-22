@@ -36,7 +36,7 @@ type Validator struct {
 	times int   //重复次数
 }
 
-func (v *Validator) Init() error {
+func (v *Validator) Open() error {
 
 	if !v.DeviceId.IsZero() {
 		dev := device.Get(v.DeviceId.Hex())
@@ -65,6 +65,31 @@ func (v *Validator) Init() error {
 	}
 
 	return v.Condition.Init()
+}
+
+func (v *Validator) Close() error {
+	if !v.DeviceId.IsZero() {
+		dev := device.Get(v.DeviceId.Hex())
+		if dev != nil {
+			dev.UnWatchValues(v)
+		}
+	}
+
+	if !v.SpaceId.IsZero() {
+		spc := space.Get(v.SpaceId.Hex())
+		if spc != nil {
+			spc.UnWatchValues(v)
+		}
+	}
+
+	if !v.ProjectId.IsZero() {
+		prj := project.Get(v.ProjectId.Hex())
+		if prj != nil {
+			prj.UnWatchValues(v)
+		}
+	}
+
+	return nil
 }
 
 func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {

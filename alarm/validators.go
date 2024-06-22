@@ -15,8 +15,11 @@ func Get(id string) *Validator {
 }
 
 func From(v *Validator) (err error) {
-	validators.Store(v.Id.Hex(), v)
-	return v.Init()
+	tt := validators.LoadAndStore(v.Id.Hex(), v)
+	if tt != nil {
+		_ = tt.Close()
+	}
+	return v.Open()
 }
 
 func Load(id primitive.ObjectID) error {
@@ -31,7 +34,7 @@ func Load(id primitive.ObjectID) error {
 func Unload(id primitive.ObjectID) error {
 	t := validators.LoadAndDelete(id.Hex())
 	if t != nil {
-		//return t.Close()
+		return t.Close()
 	}
 	return nil
 }
@@ -42,6 +45,7 @@ func LoadAll() error {
 		err := From(t)
 		if err != nil {
 			log.Error(err)
+			//return err
 		}
 		return nil
 	})
