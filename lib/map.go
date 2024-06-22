@@ -79,3 +79,9 @@ func (c *Map[T]) LoadAndDelete(name string) *T {
 func (c *Map[T]) Len() int {
 	return len(c.container)
 }
+
+func (c *Map[T]) Clear() {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	c.container = nil
+}

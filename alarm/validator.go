@@ -2,6 +2,7 @@ package alarm
 
 import (
 	"github.com/god-jason/bucket/device"
+	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/project"
@@ -9,6 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
+
+type Context struct {
+	start int64 //发生时间
+	times int   //重复次数
+}
 
 type Validator struct {
 	Id        primitive.ObjectID `json:"_id" bson:"_id"`
@@ -32,12 +38,14 @@ type Validator struct {
 	RepeatTimes   int   `json:"repeat_times,omitempty" bson:"repeat_times,omitempty"`
 
 	//last  bool  //上一次计算结果
-	start int64 //发生时间
-	times int   //重复次数
+	//start int64 //发生时间
+	//times int   //重复次数
+
+	//contexts map[string]*Context //加锁
+	contexts lib.Map[Context]
 }
 
 func (v *Validator) Open() error {
-
 	if !v.DeviceId.IsZero() {
 		dev := device.Get(v.DeviceId.Hex())
 		if dev == nil {
@@ -68,6 +76,8 @@ func (v *Validator) Open() error {
 }
 
 func (v *Validator) Close() error {
+	v.contexts.Clear()
+
 	if !v.DeviceId.IsZero() {
 		dev := device.Get(v.DeviceId.Hex())
 		if dev != nil {
@@ -88,6 +98,8 @@ func (v *Validator) Close() error {
 			prj.UnWatchValues(v)
 		}
 	}
+
+	v.contexts.Clear()
 
 	return nil
 }
@@ -111,44 +123,52 @@ func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values ma
 		return
 	}
 
+	//取上下文件
+	ctx := v.contexts.Load(device.Hex())
+	if ctx == nil {
+		ctx = &Context{}
+		v.contexts.Store(product.Hex(), ctx)
+	}
+
+	//条件为 假，则重置
 	if !ret {
-		v.start = 0
-		v.times = 0
+		ctx.start = 0
+		ctx.times = 0
 		return
 	}
 
 	//起始时间
 	now := time.Now().Unix()
-	if v.start == 0 {
-		v.start = now
+	if ctx.start == 0 {
+		ctx.start = now
 	}
 
 	//延迟报警
 	if v.Delay > 0 {
-		if now < v.start+v.Delay {
+		if now < ctx.start+v.Delay {
 			return
 		}
 	}
 
-	if v.times > 0 {
+	if ctx.times > 0 {
 		//重复报警
 		if !v.Repeat {
 			return
 		}
 
 		//超过最大次数
-		if v.RepeatTimes > 0 && v.times >= v.RepeatTimes {
+		if v.RepeatTimes > 0 && ctx.times >= v.RepeatTimes {
 			return
 		}
 
 		//还没到时间
-		if now < v.start+v.RepeatTimeout {
+		if now < ctx.start+v.RepeatTimeout {
 			return
 		}
 
-		v.start = now
+		ctx.start = now
 	}
-	v.times++
+	ctx.times++
 
 	//产生报警
 	alarm := &Alarm{

@@ -46,7 +46,7 @@ func Startup() (err error) {
 		return true
 	})
 	end := time.Now().UnixMilli()
-	fmt.Printf("[boot] %dms\n", end-start)
+	fmt.Printf("[boot] finished in %dms\n", end-start)
 	return
 }
 
