@@ -57,30 +57,45 @@ func (s *Scene) Open() error {
 	}
 
 	//找设备，注册变化 watch
-	for _, c := range s.Conditions {
-		for _, cc := range c {
-			dev := device.Get(cc.DeviceId)
-			if dev == nil {
-				return errors.New("设备找不到")
-			}
-			dev.WatchValues(s)
-		}
-	}
+	//for _, c := range s.Conditions {
+	//	for _, cc := range c {
+	//		dev := device.Get(cc.DeviceId)
+	//		if dev == nil {
+	//			return errors.New("设备找不到")
+	//		}
+	//		dev.WatchValues(s)
+	//	}
+	//}
 
 	return s.Condition.Init()
 }
 
 func (s *Scene) Close() error {
 	s.last = false
-	//找设备，unwatch
-	for _, c := range s.Conditions {
-		for _, cc := range c {
-			dev := device.Get(cc.DeviceId)
-			if dev != nil {
-				dev.UnWatchValues(s)
-			}
+
+	if !s.SpaceId.IsZero() {
+		spc := space.Get(s.SpaceId.Hex())
+		if spc != nil {
+			spc.UnWatchValues(s)
 		}
 	}
+	if !s.ProjectId.IsZero() {
+		prj := project.Get(s.ProjectId.Hex())
+		if prj != nil {
+			prj.UnWatchValues(s)
+		}
+	}
+
+	//找设备，unwatch
+	//for _, c := range s.Conditions {
+	//	for _, cc := range c {
+	//		dev := device.Get(cc.DeviceId)
+	//		if dev != nil {
+	//			dev.UnWatchValues(s)
+	//		}
+	//	}
+	//}
+
 	return nil
 }
 
