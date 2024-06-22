@@ -27,6 +27,11 @@ func main() {
 	//注册接口
 	api.RegisterRoutes(web.Engine.Group("api"))
 
+	var fs web.FileSystem
+	fs.PutDir("", "www", "", "index.html")
+
+	web.Engine.StaticFS("", &fs)
+
 	//监听
 	err = web.Serve()
 	if err != nil {
