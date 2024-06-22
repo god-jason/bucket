@@ -3,6 +3,7 @@ package timer
 import (
 	"fmt"
 	"github.com/god-jason/bucket/base"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"github.com/robfig/cron/v3"
@@ -22,16 +23,39 @@ type Timer struct {
 	Actions   []*base.Action     `json:"actions"` //动作
 	Disabled  bool               `json:"disabled"`
 
-	entry cron.EntryID
+	executor base.Executor
+	entry    cron.EntryID
 }
 
 func (s *Timer) Open() (err error) {
+	if !s.SpaceId.IsZero() {
+		spc := space.Get(s.SpaceId.Hex())
+		if spc != nil {
+			s.executor = spc
+		} else {
+			return errors.New("找不到空间")
+		}
+	} else if !s.ProjectId.IsZero() {
+		prj := project.Get(s.ProjectId.Hex())
+		if prj != nil {
+			s.executor = prj
+		} else {
+			return errors.New("找不到项目")
+		}
+	} else {
+		return errors.New("无效场景")
+	}
+
 	//星期处理
 	w := "*"
 	if len(s.Weekday) > 0 {
 		var ws []string
 		for _, day := range s.Weekday {
-			ws = append(ws, strconv.Itoa(day))
+			if day >= 0 && day <= 7 {
+				ws = append(ws, strconv.Itoa(day))
+			} else {
+				//error
+			}
 		}
 		w = strings.Join(ws, ",")
 	}
@@ -48,15 +72,7 @@ func (s *Timer) Close() (err error) {
 }
 
 func (s *Timer) tick() {
-	if !s.SpaceId.IsZero() {
-		spc := space.Get(s.SpaceId.Hex())
-		if spc != nil {
-			spc.Execute(s.Actions)
-		}
-	} else if !s.ProjectId.IsZero() {
-		prj := project.Get(s.ProjectId.Hex())
-		if prj != nil {
-			prj.Execute(s.Actions)
-		}
+	if s.executor != nil {
+		s.executor.Execute(s.Actions)
 	}
 }

@@ -2,7 +2,6 @@ package product
 
 import (
 	"github.com/god-jason/bucket/lib"
-	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -14,11 +13,8 @@ func Get(id string) *Product {
 }
 
 func From(v *Product) (err error) {
-	tt := products.LoadAndStore(v.Id.Hex(), v)
-	if tt != nil {
-		_ = tt.Close()
-	}
-	return v.Open()
+	products.Store(v.Id.Hex(), v)
+	return nil
 }
 
 func Load(id primitive.ObjectID) error {
@@ -31,21 +27,15 @@ func Load(id primitive.ObjectID) error {
 }
 
 func Unload(id primitive.ObjectID) error {
-	t := products.LoadAndDelete(id.Hex())
-	if t != nil {
-		return t.Close()
-	}
+	products.Delete(id.Hex())
 	return nil
 }
 
 func LoadAll() error {
 	return table.BatchLoad[*Product](&_table, nil, 100, func(t *Product) error {
 		//并行加载
-		err := From(t)
-		if err != nil {
-			log.Error(err)
-			//return err
-		}
+		_ = From(t)
+		//products.Store(t.Id.Hex(), t)
 		return nil
 	})
 }

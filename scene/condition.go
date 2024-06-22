@@ -67,8 +67,7 @@ type Compare struct {
 	Operator string `json:"operator,omitempty"` //对比算子 > >= < <= !=
 	Value    string `json:"value,omitempty"`    //值，支持表达式
 
-	watchers device.Watcher
-	expr     gval.Evaluable
+	expr gval.Evaluable
 }
 
 func (c *Compare) Init() (err error) {

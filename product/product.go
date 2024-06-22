@@ -46,20 +46,12 @@ type Product struct {
 }
 
 func (p *Product) GetProperty(k string) *Property {
-	return p.properties[k]
-}
-
-func (p *Product) Open() error {
-	//创建索引
-	p.properties = make(map[string]*Property)
-	for _, a := range p.Properties {
-		p.properties[a.Name] = a
+	if p.properties == nil {
+		//创建索引
+		p.properties = make(map[string]*Property)
+		for _, a := range p.Properties {
+			p.properties[a.Name] = a
+		}
 	}
-
-	return nil
-}
-
-func (p *Product) Close() error {
-
-	return nil
+	return p.properties[k]
 }

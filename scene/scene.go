@@ -30,21 +30,24 @@ type Scene struct {
 	Actions  []*base.Action `json:"actions"` //动作
 	Disabled bool           `json:"disabled"`
 
-	last bool //上一次判断结果
+	executor base.Executor
+	last     bool //上一次判断结果
 }
 
 func (s *Scene) Open() error {
 	if !s.SpaceId.IsZero() {
 		spc := space.Get(s.SpaceId.Hex())
 		if spc != nil {
-			spc.Watch(s)
+			//spc.Watch(s)
+			s.executor = spc
 		} else {
 			return errors.New("找不到空间")
 		}
 	} else if !s.ProjectId.IsZero() {
 		prj := project.Get(s.ProjectId.Hex())
 		if prj != nil {
-			prj.Watch(s)
+			//prj.Watch(s)
+			s.executor = prj
 		} else {
 			return errors.New("找不到项目")
 		}
@@ -120,32 +123,9 @@ func (s *Scene) OnDeviceValuesChange(m map[string]any) {
 	//执行接口
 	if ret && !s.last {
 		//执行
-		if !s.SpaceId.IsZero() {
-			spc := space.Get(s.SpaceId.Hex())
-			if spc != nil {
-				spc.Execute(s.Actions)
-			}
-		} else if !s.ProjectId.IsZero() {
-			prj := project.Get(s.ProjectId.Hex())
-			if prj != nil {
-				prj.Execute(s.Actions)
-			}
+		if s.executor != nil {
+			s.executor.Execute(s.Actions)
 		}
-
 	}
 	s.last = ret
-}
-
-func (s *Scene) OnDeviceAdd(dev *device.Device) {
-}
-
-func (s *Scene) OnDeviceRemove(dev *device.Device) {
-	for _, c := range s.Conditions {
-		for _, cc := range c {
-			if cc.DeviceId == dev.Id.Hex() {
-				scenes.Delete(s.Id.Hex())
-				_ = s.Close()
-			}
-		}
-	}
 }

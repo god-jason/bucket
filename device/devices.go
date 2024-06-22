@@ -3,6 +3,7 @@ package device
 import (
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -17,6 +18,9 @@ func From(v *Device) (err error) {
 	tt := devices.LoadAndStore(v.Id.Hex(), v)
 	if tt != nil {
 		_ = tt.Close()
+	}
+	if v.Disabled {
+		return nil
 	}
 	return v.Open()
 }
@@ -36,6 +40,22 @@ func Unload(id primitive.ObjectID) error {
 		return t.Close()
 	}
 	return nil
+}
+
+func Open(id primitive.ObjectID) error {
+	dev := devices.Load(id.Hex())
+	if dev == nil {
+		return errors.New("找不到设备")
+	}
+	return dev.Open()
+}
+
+func Close(id primitive.ObjectID) error {
+	dev := devices.Load(id.Hex())
+	if dev == nil {
+		return errors.New("找不到设备")
+	}
+	return dev.Close()
 }
 
 func LoadAll() error {

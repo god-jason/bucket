@@ -2,6 +2,7 @@ package device
 
 import (
 	"github.com/god-jason/bucket/aggregate/aggregator"
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/product"
 	"github.com/mochi-mqtt/server/v2"
@@ -17,7 +18,12 @@ type Aggregator struct {
 type Device struct {
 	Id        primitive.ObjectID `json:"_id" bson:"_id"`
 	ProductId primitive.ObjectID `json:"product_id" bson:"product_id"`
+	ProjectId primitive.ObjectID `json:"project_id,omitempty" bson:"project_id"`
+	SpaceId   primitive.ObjectID `json:"space_id,omitempty" bson:"space_id"`
 	Name      string             `json:"name"`
+	Disabled  bool               `json:"disabled"`
+
+	running bool
 
 	//产品
 	productId primitive.ObjectID
@@ -36,7 +42,7 @@ type Device struct {
 	gatewayClient *mqtt.Client
 
 	//监听
-	watchers map[Watcher]any
+	watchers map[base.DeviceValuesWatcher]any
 }
 
 func (d *Device) Open() error {
@@ -64,35 +70,59 @@ func (d *Device) Open() error {
 
 	d.pendingActions = make(map[string]chan map[string]any)
 
-	d.watchers = make(map[Watcher]any)
+	d.watchers = make(map[base.DeviceValuesWatcher]any)
+
+	d.running = true
 
 	return nil
 }
 
+func (d *Device) Close() error {
+	d.running = false
+	d.pendingActions = nil
+	d.watchers = nil
+	d.aggregators = nil
+	return nil
+}
+
 func (d *Device) snap() {
+	if !d.running {
+		return
+	}
 	for _, agg := range d.aggregators {
 		agg.Snap()
 	}
 }
 
 func (d *Device) aggregate(now time.Time) {
-	var values map[string]any
-	for _, a := range d.aggregators {
-		val := a.Pop()
-		if val == nil {
-			values[a.As] = val
-		}
+	if !d.running {
+		return
 	}
 
-	if len(values) > 0 {
-		values["device_id"] = d.Id
-		values["date"] = now
-		//写入数据库，batch
-		aggregateStore.InsertOne(values)
+	if len(d.aggregators) > 0 {
+		values := make(map[string]any)
+		for _, a := range d.aggregators {
+			val := a.Pop()
+			if val != nil {
+				values[a.As] = val
+			}
+		}
+
+		if len(values) > 0 {
+
+			values["device_id"] = d.Id
+			values["date"] = now
+			//写入数据库，batch
+			aggregateStore.InsertOne(values)
+		}
 	}
 }
 
 func (d *Device) PatchValues(values map[string]any) {
+	if !d.running {
+		return
+	}
+
 	his := make(map[string]any)
 
 	for k, v := range values {
@@ -183,17 +213,10 @@ func (d *Device) Values() map[string]any {
 	return d.values
 }
 
-func (d *Device) Watch(watcher Watcher) {
-
+func (d *Device) Watch(watcher base.DeviceValuesWatcher) {
+	d.watchers[watcher] = 1
 }
 
-func (d *Device) UnWatch(watcher Watcher) {
-
-}
-
-func (d *Device) Close() error {
-
-	d.pendingActions = nil
-	d.watchers = nil
-	return nil
+func (d *Device) UnWatch(watcher base.DeviceValuesWatcher) {
+	delete(d.watchers, watcher)
 }

@@ -51,7 +51,7 @@ func LoadAll() error {
 	})
 }
 
-func LoadBy(filter any, executor Executor) ([]*Timer, error) {
+func LoadBy(filter any, executor base.Executor) ([]*Timer, error) {
 	var ts []*Timer
 	err := _table.Find(filter, nil, 0, 0, &ts)
 	if err != nil {

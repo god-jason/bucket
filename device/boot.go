@@ -10,6 +10,9 @@ import (
 
 var _cron *cron.Cron
 
+var aggregateStore *db.Batch
+var historyStore *db.Batch
+
 func init() {
 	boot.Register("device", &boot.Task{
 		Startup:  Startup, //启动
