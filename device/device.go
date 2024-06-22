@@ -37,7 +37,7 @@ type Device struct {
 	//聚合器
 	aggregators map[string]*Aggregator
 
-	//等待的操作响应
+	//等待的操作响应 todo 加锁
 	pendingActions map[string]chan map[string]any
 
 	//网关连接

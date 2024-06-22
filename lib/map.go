@@ -80,6 +80,10 @@ func (c *Map[T]) Len() int {
 	return len(c.container)
 }
 
+func (c *Map[T]) Map() map[string]*T {
+	return c.container
+}
+
 func (c *Map[T]) Clear() {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

@@ -192,12 +192,3 @@ func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values ma
 	//todo 发送 mqtt
 
 }
-
-func (v *Validator) OnDeviceAdd(dev *device.Device) {
-	if v.DeviceId.IsZero() && !v.ProductId.IsZero() {
-		dev.WatchValues(v)
-	}
-}
-
-func (v *Validator) OnDeviceRemove(dev *device.Device) {
-}
