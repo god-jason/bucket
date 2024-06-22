@@ -1,6 +1,7 @@
 package device
 
 import (
+	"github.com/god-jason/bucket/action"
 	"github.com/god-jason/bucket/aggregate/aggregator"
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/pkg/errors"
@@ -8,6 +9,7 @@ import (
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"github.com/mochi-mqtt/server/v2"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -38,7 +40,7 @@ type Device struct {
 	aggregators map[string]*Aggregator
 
 	//等待的操作响应 todo 加锁
-	pendingActions map[string]chan map[string]any
+	pendingActions map[string]chan *PayloadActionUp
 
 	//网关连接
 	gatewayClient *mqtt.Client
@@ -70,7 +72,7 @@ func (d *Device) Open() error {
 		}
 	}
 
-	d.pendingActions = make(map[string]chan map[string]any)
+	d.pendingActions = make(map[string]chan *PayloadActionUp)
 
 	d.valuesWatchers = make(map[base.ValuesWatcher]any)
 
@@ -205,28 +207,45 @@ func (d *Device) WriteValues(values map[string]any) error {
 	return nil
 }
 
-func (d *Device) Action(action string, values map[string]any) (map[string]any, error) {
+func (d *Device) Action(name string, values map[string]any) (map[string]any, error) {
+
+	act := action.Action{
+		ProductId:  d.ProductId,
+		DeviceId:   d.Id,
+		ProjectId:  d.ProjectId,
+		SpaceId:    d.SpaceId,
+		Name:       name,
+		Parameters: values,
+	}
+
+	id, err := action.Table().Insert(&act)
+	if err != nil {
+		return nil, err
+	}
 
 	//检查参数
 
 	//向网关发送写指令
-	if d.gatewayClient != nil {
-		payload := PayloadAction{Action: action, Values: values}
-		err := publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/action", &payload)
+	if d.gatewayClient != nil && !d.gatewayClient.Closed() {
+		payload := PayloadActionDown{Id: id.Hex(), Name: name, Parameters: values}
+		err := publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/name", &payload)
 		if err != nil {
 			return nil, err
 		}
-		d.pendingActions[action] = make(chan map[string]any)
+		d.pendingActions[id.Hex()] = make(chan *PayloadActionUp)
 
 		//等待结果
 		select {
 		case <-time.After(time.Minute):
+			_ = action.Table().Update(id, bson.M{"result": "timeout"})
 			return nil, errors.New("超时")
-		case results := <-d.pendingActions[action]:
-			return results, nil
+		case ret := <-d.pendingActions[name]:
+			_ = action.Table().Update(id, bson.M{"return": ret.Return, "result": ret.Result})
+			return ret.Return, nil
 		}
 	}
 
+	_ = action.Table().Update(id, bson.M{"result": "offline"})
 	return nil, errors.New("不可到达")
 }
 

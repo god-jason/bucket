@@ -7,6 +7,7 @@ import (
 	"github.com/god-jason/bucket/boot"
 	_ "github.com/god-jason/bucket/device"
 	_ "github.com/god-jason/bucket/function"
+	_ "github.com/god-jason/bucket/gateway"
 	_ "github.com/god-jason/bucket/history"
 	"github.com/god-jason/bucket/log"
 	_ "github.com/god-jason/bucket/product"

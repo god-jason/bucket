@@ -1,6 +1,10 @@
 package gateway
 
-import "github.com/god-jason/bucket/boot"
+import (
+	"github.com/god-jason/bucket/boot"
+	mqtt "github.com/mochi-mqtt/server/v2"
+	"github.com/mochi-mqtt/server/v2/listeners"
+)
 
 func init() {
 	boot.Register("gateway", &boot.Task{
@@ -8,4 +12,26 @@ func init() {
 		Shutdown: Shutdown,
 		Depends:  []string{"web", "log", "database"},
 	})
+}
+
+var server *mqtt.Server
+
+func Startup() error {
+	opts := &mqtt.Options{
+		InlineClient: true,
+	}
+	server = mqtt.New(opts)
+	l := listeners.NewTCP(listeners.Config{Type: "tcp", ID: "gateway", Address: ":1883"}) //todo config
+	err := server.AddListener(l)
+	if err != nil {
+		return err
+	}
+	return server.Serve()
+}
+
+func Shutdown() error {
+	if server != nil {
+		return server.Close()
+	}
+	return nil
 }

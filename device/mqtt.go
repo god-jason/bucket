@@ -12,9 +12,17 @@ type PayloadHistory struct {
 	Timestamp int64          `json:"timestamp"`
 }
 
-type PayloadAction struct {
-	Action string         `json:"action"`
-	Values map[string]any `json:"values"`
+type PayloadActionDown struct {
+	Id         string         `json:"id"`
+	Name       string         `json:"name"`
+	Parameters map[string]any `json:"parameters,omitempty"`
+}
+
+type PayloadActionUp struct {
+	Id     string         `json:"id"`
+	Name   string         `json:"name"`
+	Result string         `json:"result,omitempty"`
+	Return map[string]any `json:"return,omitempty"`
 }
 
 func (d *Device) HandleMqtt(typ string, cl *mqtt.Client, payload []byte) {
@@ -41,13 +49,13 @@ func (d *Device) HandleMqtt(typ string, cl *mqtt.Client, payload []byte) {
 		}
 	case "action":
 		//action调用web接口
-		var action PayloadAction
+		var action PayloadActionUp
 		err := json.Unmarshal(payload, &action)
 		if err != nil {
 			log.Error(err)
 			return
 		}
-		d.pendingActions[action.Action] <- action.Values
+		d.pendingActions[action.Name] <- &action
 	case "event":
 		//解析事件，生成 alarm
 
