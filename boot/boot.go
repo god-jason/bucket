@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/god-jason/bucket/lib"
 	"sync/atomic"
+	"time"
 )
 
 type Task struct {
@@ -31,6 +32,7 @@ func Unregister(name string) {
 }
 
 func Startup() (err error) {
+	start := time.Now().UnixMilli()
 	tasks.Range(func(name string, task *Task) bool {
 		//过滤掉依赖启动
 		if task.booting.Load() || task.booted.Load() {
@@ -43,6 +45,8 @@ func Startup() (err error) {
 		}
 		return true
 	})
+	end := time.Now().UnixMilli()
+	fmt.Printf("[startup] took %dms\n", end-start)
 	return
 }
 
