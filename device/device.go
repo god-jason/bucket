@@ -132,8 +132,10 @@ func (d *Device) aggregate(now time.Time) {
 		}
 
 		if len(values) > 0 {
-
 			values["device_id"] = d.Id
+			values["product_id"] = d.ProductId
+			values["project_id"] = d.ProjectId
+			values["space_id"] = d.SpaceId
 			values["date"] = now
 			//写入数据库，batch
 			aggregateStore.InsertOne(values)

@@ -8,6 +8,7 @@ import (
 var _table = table.Table{
 	Name: base.BucketAggregate,
 	Fields: []*table.Field{
+		base.ProductIdField,
 		base.DeviceIdField,
 		base.ProjectIdField,
 		base.SpaceIdField,
