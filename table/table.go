@@ -210,7 +210,7 @@ func (t *Table) Get(id primitive.ObjectID, result any) error {
 		return err
 	}
 
-	//after get todo 没有太大必要
+	//after get todo 没有太大必要，删掉
 	if t.Hooks != nil {
 		if hook, ok := t.Hooks["after.get"]; ok {
 			err := hook.Run(map[string]any{"id": id, "object": result})

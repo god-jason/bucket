@@ -66,7 +66,10 @@ func (s *Timer) Open() (err error) {
 
 	//分 时 日 月 星期
 	spec := fmt.Sprintf("%d %d * * %s", s.Clock%60, s.Clock/60, w)
-	s.entry, err = _cron.AddFunc(spec, s.ExecuteIgnoreError) //todo 池化
+	s.entry, err = _cron.AddFunc(spec, func() {
+		//池化 避免拥堵
+		_ = pool.Insert(s.ExecuteIgnoreError)
+	})
 	return
 }
 
