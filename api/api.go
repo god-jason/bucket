@@ -53,7 +53,7 @@ func mustLogin(ctx *gin.Context) {
 	if token != "" {
 		claims, err := web.JwtVerify(token)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
 			ctx.Abort()
 		} else {
 			ctx.Set("user", claims.Id) //与session统一
@@ -68,7 +68,7 @@ func mustLogin(ctx *gin.Context) {
 		ctx.Set("user", user)
 		ctx.Next()
 	} else {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
 		ctx.Abort()
 	}
 }
@@ -88,7 +88,7 @@ func RegisterRoutes(router *gin.RouterGroup) {
 	//附件管理
 	attach.Routers(router.Group("/attach"), "attach")
 
-	//TODO 报接口错误（以下代码不生效，路由好像不是树形处理）
+	//报接口错误（以下代码不生效，路由好像不是树形处理）
 	router.Use(func(ctx *gin.Context) {
 		Fail(ctx, "Not found")
 		ctx.Abort()
