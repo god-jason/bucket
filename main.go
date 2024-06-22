@@ -4,6 +4,7 @@ import (
 	_ "github.com/god-jason/bucket/action"
 	_ "github.com/god-jason/bucket/aggregate"
 	_ "github.com/god-jason/bucket/alarm"
+	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/boot"
 	_ "github.com/god-jason/bucket/device"
 	_ "github.com/god-jason/bucket/function"
@@ -23,6 +24,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	//注册接口
+	api.RegisterRoutes(web.Engine.Group("api"))
+
+	//监听
 	err = web.Serve()
 	if err != nil {
 		log.Fatal(err)
