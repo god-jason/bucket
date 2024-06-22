@@ -4,6 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -19,10 +20,44 @@ var _hook = table.Hook{
 	AfterInsert: func(id primitive.ObjectID, doc any) error {
 		return Load(id)
 	},
-	AfterUpdate: func(id primitive.ObjectID, doc any) error {
+	AfterUpdate: func(id primitive.ObjectID, update any, base db.Document) error {
 		return Load(id)
 	},
 	AfterDelete: func(id primitive.ObjectID, doc db.Document) error {
+		go func() {
+			//删除相关报警
+			v, e := table.Get(base.BucketValidator)
+			if e == nil {
+				ids, err := v.DistinctId(bson.D{{"project_id", id}})
+				if err == nil {
+					for _, id := range ids {
+						_ = v.Delete(id)
+					}
+				}
+			}
+
+			//删除相关报警
+			s, e := table.Get(base.BucketScene)
+			if e == nil {
+				ids, err := s.DistinctId(bson.D{{"project_id", id}})
+				if err == nil {
+					for _, id := range ids {
+						_ = s.Delete(id)
+					}
+				}
+			}
+
+			//删除相关报警
+			t, e := table.Get(base.BucketTimer)
+			if e == nil {
+				ids, err := t.DistinctId(bson.D{{"project_id", id}})
+				if err == nil {
+					for _, id := range ids {
+						_ = s.Delete(id)
+					}
+				}
+			}
+		}()
 		return Unload(id)
 	},
 }

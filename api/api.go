@@ -33,13 +33,11 @@ func catchError(ctx *gin.Context) {
 			default:
 				ctx.JSON(http.StatusOK, gin.H{"error": err})
 			}
-			//TODO 这里好像又继续了
+			//这里好像又继续了
 		}
 	}()
 	ctx.Next()
-
-	//TODO 内容如果为空，返回404
-
+	//内容如果为空，返回404
 }
 
 func mustLogin(ctx *gin.Context) {

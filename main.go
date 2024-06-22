@@ -22,5 +22,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_ = web.Serve()
+	err = web.Serve()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -157,16 +157,6 @@ func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, er
 }
 
 func (t *Table) Delete(id primitive.ObjectID) error {
-	//没有hook，则直接Delete
-	if t.Hook == nil || t.Hook.BeforeDelete == nil && t.Hook.AfterDelete == nil {
-		if _, ok := t.scripts["before.delete"]; !ok {
-			if _, ok := t.scripts["after.delete"]; !ok {
-				_, err := db.DeleteById(t.Name, id)
-				return err
-			}
-		}
-	}
-
 	//before delete
 	if t.Hook != nil && t.Hook.BeforeDelete != nil {
 		err := t.Hook.BeforeDelete(id)
@@ -189,6 +179,9 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 		return err
 	}
 
+	//把删除保存到修改历史表
+	_, _ = db.InsertOne(t.Name+".deleted", result)
+
 	//after delete
 	if t.Hook != nil && t.Hook.AfterDelete != nil {
 		err := t.Hook.AfterDelete(id, result)
@@ -210,15 +203,6 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 }
 
 func (t *Table) Update(id primitive.ObjectID, update any) error {
-	//没有hook，则直接Update
-	if t.Hook == nil || t.Hook.BeforeUpdate == nil && t.Hook.AfterUpdate == nil {
-		if _, ok := t.scripts["before.update"]; !ok {
-			if _, ok := t.scripts["after.update"]; !ok {
-				_, err := db.UpdateById(t.Name, id, update, false)
-				return err
-			}
-		}
-	}
 
 	//before update
 	if t.Hook != nil && t.Hook.BeforeUpdate != nil {
@@ -230,7 +214,7 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	if hook, ok := t.scripts["before.update"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
-		_ = vm.Set("update", update)
+		_ = vm.Set("change", update)
 		_, err := vm.RunProgram(hook)
 		if err != nil {
 			return errors.Wrap(err)
@@ -238,17 +222,17 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	}
 
 	var result db.Document
-	err := db.FindOneAndUpdate(t.Name,
-		bson.D{{"_id", id}},
-		bson.D{{"$set", update}},
-		&result)
+	err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", id}}, bson.D{{"$set", update}}, &result)
 	if err != nil {
 		return err
 	}
 
+	//把差异保存到修改历史表
+	_, _ = db.InsertOne(t.Name+".change", bson.M{"id": id, "base": result, "change": update})
+
 	//after update
 	if t.Hook != nil && t.Hook.AfterUpdate != nil {
-		err := t.Hook.AfterUpdate(id, update)
+		err := t.Hook.AfterUpdate(id, update, result)
 		if err != nil {
 			return errors.Wrap(err)
 		}
@@ -256,8 +240,8 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	if hook, ok := t.scripts["after.update"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
-		_ = vm.Set("update", update)
-		_ = vm.Set("object", result) //todo 使用新的
+		_ = vm.Set("change", update)
+		_ = vm.Set("base", result)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
 			return errors.Wrap(err)

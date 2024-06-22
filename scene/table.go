@@ -37,7 +37,7 @@ var _hook = table.Hook{
 	AfterInsert: func(id primitive.ObjectID, doc any) error {
 		return Load(id)
 	},
-	AfterUpdate: func(id primitive.ObjectID, doc any) error {
+	AfterUpdate: func(id primitive.ObjectID, update any, base db.Document) error {
 		return Load(id)
 	},
 	AfterDelete: func(id primitive.ObjectID, doc db.Document) error {
