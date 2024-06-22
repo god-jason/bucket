@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"bytes"
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/device"
@@ -17,8 +18,18 @@ type IncomingHook struct {
 func (h *IncomingHook) ID() string {
 	return "incoming"
 }
+func (h *IncomingHook) Provides(b byte) bool {
+	return bytes.Contains([]byte{
+		mqtt.OnConnectAuthenticate,
+		mqtt.OnACLCheck,
+		mqtt.OnDisconnect,
+		mqtt.OnPublish,
+	}, []byte{b})
+}
 
 func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
+	//todo 如果支持匿名，则直接true
+
 	id, err := db.ParseObjectId(pk.Connect.ClientIdentifier)
 	if err != nil {
 		return false
@@ -56,13 +67,13 @@ func (h *IncomingHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
 func (h *IncomingHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
 	//直接处理数据
 	topics := strings.Split(pk.TopicName, "/")
-	if len(topics) != 3 {
+	if len(topics) != 4 {
 		return pk, nil
 	}
 
-	//up/device/+/values 数据上传
-	//up/device/+/action 接口响应
-	//up/device/+/event 事件上报
+	//--up/device/+/values 数据上传
+	//--up/device/+/action 接口响应
+	//--up/device/+/event 事件上报
 	if topics[0] == "up" {
 		//池化处理，避免拥堵
 		_ = pool.Insert(func() {

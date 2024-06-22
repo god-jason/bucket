@@ -21,8 +21,17 @@ func Startup() error {
 		InlineClient: true,
 	}
 	server = mqtt.New(opts)
-	l := listeners.NewTCP(listeners.Config{Type: "tcp", ID: "gateway", Address: ":1883"}) //todo config
-	err := server.AddListener(l)
+
+	//_ = server.AddHook(new(auth.AllowHook), nil)
+
+	//todo config 支持匿名
+	err := server.AddHook(new(IncomingHook), nil)
+	if err != nil {
+		return err
+	}
+
+	l := listeners.NewTCP(listeners.Config{ID: "gateway", Address: ":1883"}) //todo config
+	err = server.AddListener(l)
 	if err != nil {
 		return err
 	}
