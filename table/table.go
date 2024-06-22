@@ -39,7 +39,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	if t.Schema != nil {
 		err = t.Schema.Validate(doc)
 		if err != nil {
-			return db.EmptyObjectId(), err
+			return primitive.NilObjectID, err
 		}
 	}
 
@@ -48,14 +48,14 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		if hook, ok := t.Hooks["before.insert"]; ok {
 			err = hook.Run(map[string]any{"object": doc})
 			if err != nil {
-				return db.EmptyObjectId(), err
+				return primitive.NilObjectID, err
 			}
 		}
 	}
 
 	ret, err := db.InsertOne(t.Name, doc)
 	if err != nil {
-		return db.EmptyObjectId(), err
+		return primitive.NilObjectID, err
 	}
 	if d, ok := doc.(map[string]any); ok {
 		d["_id"] = ret
@@ -67,7 +67,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		if hook, ok := t.Hooks["after.insert"]; ok {
 			err = hook.Run(map[string]any{"object": doc})
 			if err != nil {
-				return db.EmptyObjectId(), err
+				return primitive.NilObjectID, err
 			}
 		}
 	}
@@ -260,4 +260,8 @@ func (t *Table) Drop() error {
 
 func (t *Table) Distinct(filter any, field string) (values []any, err error) {
 	return db.Distinct(t.Name, filter, field)
+}
+
+func (t *Table) DistinctId(filter any) (values []primitive.ObjectID, err error) {
+	return db.DistinctId(t.Name, filter)
 }

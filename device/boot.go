@@ -17,7 +17,7 @@ func init() {
 	boot.Register("device", &boot.Task{
 		Startup:  Startup, //启动
 		Shutdown: Shutdown,
-		Depends:  []string{"web", "pool", "log", "database", "product"},
+		Depends:  []string{"web", "pool", "log", "database", "product", "project", "space"},
 	})
 }
 

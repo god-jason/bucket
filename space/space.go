@@ -2,7 +2,9 @@ package space
 
 import (
 	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/device"
+	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/pkg/errors"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -12,30 +14,43 @@ type Space struct {
 	Name      string             `json:"name"`
 	Disabled  bool               `json:"disabled"`
 
-	devices []*device.Device
+	running bool
 
-	watchers map[Watcher]any
+	valuesWatchers map[base.ValuesWatcher]any
 }
 
 func (s *Space) Open() error {
-	s.watchers = make(map[Watcher]any)
-
-	//todo 加载设备 加载场景
+	s.valuesWatchers = make(map[base.ValuesWatcher]any)
+	s.running = true
 	return nil
 }
 
 func (s *Space) Close() error {
+	s.valuesWatchers = nil
+	s.running = false
 	return nil
 }
 
-func (s *Space) Execute(actions []*base.Action) {
-
+func (s *Space) Devices(productId primitive.ObjectID) (ids []primitive.ObjectID, err error) {
+	if !s.running {
+		return nil, errors.New("空间已经关闭")
+	}
+	return db.DistinctId(base.BucketDevice, bson.D{
+		{"space_id", s.Id},
+		{"product_id", productId},
+	})
 }
 
-func (s *Space) Devices() []*device.Device {
-	return s.devices
+func (s *Space) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
+	for w, _ := range s.valuesWatchers {
+		w.OnValuesChange(product, device, values)
+	}
 }
 
-func (s *Space) Watch(w Watcher) {
-	s.watchers[w] = 1
+func (s *Space) WatchValues(w base.ValuesWatcher) {
+	s.valuesWatchers[w] = 1
+}
+
+func (s *Space) UnWatchValues(w base.ValuesWatcher) {
+	delete(s.valuesWatchers, w)
 }

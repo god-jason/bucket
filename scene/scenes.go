@@ -4,6 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -49,4 +50,12 @@ func LoadAll() error {
 		}
 		return nil
 	})
+}
+
+func Execute(id primitive.ObjectID) error {
+	t := scenes.Load(id.Hex())
+	if t != nil {
+		return t.Execute()
+	}
+	return errors.New("找不到场景")
 }

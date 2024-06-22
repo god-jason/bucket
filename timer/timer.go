@@ -3,7 +3,10 @@ package timer
 import (
 	"fmt"
 	"github.com/god-jason/bucket/base"
+	"github.com/god-jason/bucket/device"
+	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pool"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"github.com/robfig/cron/v3"
@@ -23,22 +26,23 @@ type Timer struct {
 	Actions   []*base.Action     `json:"actions"` //动作
 	Disabled  bool               `json:"disabled"`
 
-	executor base.Executor
-	entry    cron.EntryID
+	deviceContainer base.DeviceContainer
+	entry           cron.EntryID
 }
 
 func (s *Timer) Open() (err error) {
+
 	if !s.SpaceId.IsZero() {
 		spc := space.Get(s.SpaceId.Hex())
 		if spc != nil {
-			s.executor = spc
+			s.deviceContainer = spc
 		} else {
 			return errors.New("找不到空间")
 		}
 	} else if !s.ProjectId.IsZero() {
 		prj := project.Get(s.ProjectId.Hex())
 		if prj != nil {
-			s.executor = prj
+			s.deviceContainer = prj
 		} else {
 			return errors.New("找不到项目")
 		}
@@ -62,7 +66,7 @@ func (s *Timer) Open() (err error) {
 
 	//分 时 日 月 星期
 	spec := fmt.Sprintf("%d %d * * %s", s.Clock%60, s.Clock/60, w)
-	s.entry, err = _cron.AddFunc(spec, s.tick) //todo 池化
+	s.entry, err = _cron.AddFunc(spec, s.ExecuteIgnoreError) //todo 池化
 	return
 }
 
@@ -71,8 +75,78 @@ func (s *Timer) Close() (err error) {
 	return
 }
 
-func (s *Timer) tick() {
-	if s.executor != nil {
-		s.executor.Execute(s.Actions)
+func (s *Timer) execute(id string, name string, params map[string]any) {
+	dev := device.Get(id)
+	if dev != nil {
+		_ = pool.Insert(func() {
+			_, err := dev.Action(name, params)
+			if err != nil {
+				log.Error(err)
+			}
+		})
 	}
+}
+
+func (s *Timer) ExecuteIgnoreError() {
+	for _, a := range s.Actions {
+		if !a.DeviceId.IsZero() {
+			s.execute(a.DeviceId.Hex(), a.Name, a.Parameters)
+		} else if !a.ProductId.IsZero() {
+			if s.deviceContainer != nil {
+				ids, err := s.deviceContainer.Devices(a.ProductId)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
+				for _, d := range ids {
+					s.execute(d.Hex(), a.Name, a.Parameters)
+				}
+			} else {
+				log.Error("需要指定产品ID")
+				//error
+			}
+		} else {
+			//error
+			log.Error("无效的动作")
+		}
+	}
+}
+
+func (s *Timer) Execute() error {
+	for _, a := range s.Actions {
+		if !a.DeviceId.IsZero() {
+			dev := device.Get(a.DeviceId.Hex())
+			if dev != nil {
+				_, err := dev.Action(a.Name, a.Parameters)
+				if err != nil {
+					return err
+				}
+			} else {
+				return errors.New("设备找不到")
+			}
+		} else if !a.ProductId.IsZero() {
+			if s.deviceContainer != nil {
+				ids, err := s.deviceContainer.Devices(a.ProductId)
+				if err != nil {
+					return err
+				}
+				for _, d := range ids {
+					dev := device.Get(d.Hex())
+					if dev != nil {
+						_, err := dev.Action(a.Name, a.Parameters)
+						if err != nil {
+							return err
+						}
+					} else {
+						return errors.New("设备找不到")
+					}
+				}
+			} else {
+				return errors.New("需要指定产品ID")
+			}
+		} else {
+			return errors.New("无效的动作")
+		}
+	}
+	return nil
 }

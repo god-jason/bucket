@@ -5,6 +5,7 @@ import (
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pool"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -30,24 +31,24 @@ type Scene struct {
 	Actions  []*base.Action `json:"actions"` //动作
 	Disabled bool           `json:"disabled"`
 
-	executor base.Executor
-	last     bool //上一次判断结果
+	deviceContainer base.DeviceContainer
+	last            bool //上一次判断结果
 }
 
 func (s *Scene) Open() error {
 	if !s.SpaceId.IsZero() {
 		spc := space.Get(s.SpaceId.Hex())
 		if spc != nil {
-			//spc.Watch(s)
-			s.executor = spc
+			spc.WatchValues(s)
+			s.deviceContainer = spc
 		} else {
 			return errors.New("找不到空间")
 		}
 	} else if !s.ProjectId.IsZero() {
 		prj := project.Get(s.ProjectId.Hex())
 		if prj != nil {
-			//prj.Watch(s)
-			s.executor = prj
+			prj.WatchValues(s)
+			s.deviceContainer = prj
 		} else {
 			return errors.New("找不到项目")
 		}
@@ -62,7 +63,7 @@ func (s *Scene) Open() error {
 			if dev == nil {
 				return errors.New("设备找不到")
 			}
-			dev.Watch(s)
+			dev.WatchValues(s)
 		}
 	}
 
@@ -71,11 +72,19 @@ func (s *Scene) Open() error {
 
 func (s *Scene) Close() error {
 	s.last = false
+	//找设备，unwatch
+	for _, c := range s.Conditions {
+		for _, cc := range c {
+			dev := device.Get(cc.DeviceId)
+			if dev != nil {
+				dev.UnWatchValues(s)
+			}
+		}
+	}
 	return nil
 }
 
-func (s *Scene) OnDeviceValuesChange(m map[string]any) {
-
+func (s *Scene) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
 	//检查时间
 	if len(s.Times) > 0 {
 		now := time.Now()
@@ -123,9 +132,83 @@ func (s *Scene) OnDeviceValuesChange(m map[string]any) {
 	//执行接口
 	if ret && !s.last {
 		//执行
-		if s.executor != nil {
-			s.executor.Execute(s.Actions)
-		}
+		s.ExecuteIgnoreError()
 	}
 	s.last = ret
+}
+
+func (s *Scene) execute(id string, name string, params map[string]any) {
+	dev := device.Get(id)
+	if dev != nil {
+		_ = pool.Insert(func() {
+			_, err := dev.Action(name, params)
+			if err != nil {
+				log.Error(err)
+			}
+		})
+	}
+}
+
+func (s *Scene) ExecuteIgnoreError() {
+	for _, a := range s.Actions {
+		if !a.DeviceId.IsZero() {
+			s.execute(a.DeviceId.Hex(), a.Name, a.Parameters)
+		} else if !a.ProductId.IsZero() {
+			if s.deviceContainer != nil {
+				ids, err := s.deviceContainer.Devices(a.ProductId)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
+				for _, d := range ids {
+					s.execute(d.Hex(), a.Name, a.Parameters)
+				}
+			} else {
+				log.Error("需要指定产品ID")
+				//error
+			}
+		} else {
+			//error
+			log.Error("无效的动作")
+		}
+	}
+}
+
+func (s *Scene) Execute() error {
+	for _, a := range s.Actions {
+		if !a.DeviceId.IsZero() {
+			dev := device.Get(a.DeviceId.Hex())
+			if dev != nil {
+				_, err := dev.Action(a.Name, a.Parameters)
+				if err != nil {
+					return err
+				}
+			} else {
+				return errors.New("设备找不到")
+			}
+		} else if !a.ProductId.IsZero() {
+			if s.deviceContainer != nil {
+				ids, err := s.deviceContainer.Devices(a.ProductId)
+				if err != nil {
+					return err
+				}
+				for _, d := range ids {
+					dev := device.Get(d.Hex())
+					if dev != nil {
+						_, err := dev.Action(a.Name, a.Parameters)
+						if err != nil {
+							return err
+						}
+					} else {
+						return errors.New("设备找不到")
+					}
+				}
+			} else {
+				return errors.New("需要指定产品ID")
+			}
+		} else {
+			return errors.New("无效的动作")
+		}
+	}
+	return nil
 }

@@ -2,7 +2,9 @@ package project
 
 import (
 	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/device"
+	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/pkg/errors"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -13,36 +15,45 @@ type Project struct {
 
 	running bool
 
-	devices []*device.Device
-
-	watchers map[device.Watcher]any
+	valuesWatchers map[base.ValuesWatcher]any
 }
 
 func (p *Project) Open() error {
-	p.watchers = make(map[device.Watcher]any)
+	//todo 启动所有空间
 
-	//todo 订阅设备 find ids watch
-
+	p.valuesWatchers = make(map[base.ValuesWatcher]any)
 	p.running = true
 	return nil
 }
 
 func (p *Project) Close() error {
+	//todo 关闭所有空间
+
+	p.valuesWatchers = nil
 	p.running = false
 	return nil
 }
 
-func (p *Project) Execute(actions []*base.Action) {
+func (p *Project) Devices(productId primitive.ObjectID) (ids []primitive.ObjectID, err error) {
 	if !p.running {
-		return
+		return nil, errors.New("项目已经关闭")
 	}
-
+	return db.DistinctId(base.BucketDevice, bson.D{
+		{"project_id", p.Id},
+		{"product_id", productId},
+	})
 }
 
-func (p *Project) Devices() []*device.Device {
-	return p.devices
+func (p *Project) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
+	for w, _ := range p.valuesWatchers {
+		w.OnValuesChange(product, device, values)
+	}
 }
 
-func (p *Project) Watch(w device.Watcher) {
-	p.watchers[w] = 1
+func (p *Project) WatchValues(w base.ValuesWatcher) {
+	p.valuesWatchers[w] = 1
+}
+
+func (p *Project) UnWatchValues(w base.ValuesWatcher) {
+	delete(p.valuesWatchers, w)
 }

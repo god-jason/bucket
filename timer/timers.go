@@ -4,6 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -51,18 +52,10 @@ func LoadAll() error {
 	})
 }
 
-func LoadBy(filter any, executor base.Executor) ([]*Timer, error) {
-	var ts []*Timer
-	err := _table.Find(filter, nil, 0, 0, &ts)
-	if err != nil {
-		return nil, err
+func Execute(id primitive.ObjectID) error {
+	t := timers.Load(id.Hex())
+	if t != nil {
+		return t.Execute()
 	}
-	for _, t := range ts {
-		err = From(t)
-		if err != nil {
-			log.Error(err)
-			//return err
-		}
-	}
-	return ts, nil
+	return errors.New("找不到定时器")
 }

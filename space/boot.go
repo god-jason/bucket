@@ -8,7 +8,7 @@ func init() {
 	boot.Register("space", &boot.Task{
 		Startup:  Startup, //启动
 		Shutdown: Shutdown,
-		Depends:  []string{"web", "pool", "log", "database", "device", "project"},
+		Depends:  []string{"web", "pool", "log", "database", "project"},
 	})
 }
 

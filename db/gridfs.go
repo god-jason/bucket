@@ -19,7 +19,7 @@ func Upload(filename string, metadata any) (*gridfs.UploadStream, error) {
 
 func UploadFrom(filename string, metadata any, reader io.Reader) (id primitive.ObjectID, err error) {
 	if bucket == nil {
-		return _id, ErrDisconnect
+		return primitive.NilObjectID, ErrDisconnect
 	}
 	opts := options.GridFSUpload().SetMetadata(metadata)
 	return bucket.UploadFromStream(filename, reader, opts)

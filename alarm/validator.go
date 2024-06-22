@@ -38,37 +38,28 @@ type Validator struct {
 
 func (v *Validator) Init() error {
 
-	if v.ProjectId.IsZero() {
-		return errors.New("必须指定项目")
-	}
-
-	//过滤掉项目禁用的情况
-	prj := project.Get(v.ProjectId.Hex())
-	if prj == nil {
-		return errors.New("找不到项目")
-	}
-
 	if !v.DeviceId.IsZero() {
 		dev := device.Get(v.DeviceId.Hex())
 		if dev == nil {
 			return errors.New("找不到设备")
 		}
-		dev.Watch(v)
+		dev.WatchValues(v)
 	} else if !v.ProductId.IsZero() {
 		if !v.SpaceId.IsZero() {
 			spc := space.Get(v.SpaceId.Hex())
 			if spc == nil {
 				return errors.New("找不到空间")
 			}
-			for _, dev := range spc.Devices() {
-				dev.Watch(v)
+			spc.WatchValues(v)
+		} else if !v.ProjectId.IsZero() {
+			prj := project.Get(v.ProjectId.Hex())
+			if prj == nil {
+				return errors.New("找不到项目")
 			}
+			prj.WatchValues(v)
 		} else {
-			for _, dev := range prj.Devices() {
-				dev.Watch(v)
-			}
+			return errors.New("不能仅指定产品")
 		}
-
 	} else {
 		return errors.New("没有指定设备和产品")
 	}
@@ -76,8 +67,20 @@ func (v *Validator) Init() error {
 	return v.Condition.Init()
 }
 
-func (v *Validator) OnDeviceValuesChange(ctx map[string]any) {
-	ret, err := v.Condition.Eval(ctx)
+func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
+	if v.DeviceId.IsZero() {
+		if v.ProductId.Hex() != product.Hex() {
+			//不是当前产品
+			return
+		}
+	} else {
+		if v.DeviceId.Hex() != device.Hex() {
+			//不是当前设备
+			return
+		}
+	}
+
+	ret, err := v.Condition.Eval(values)
 	if err != nil {
 		log.Error(err)
 		return
@@ -126,8 +129,8 @@ func (v *Validator) OnDeviceValuesChange(ctx map[string]any) {
 	alarm := &Alarm{
 		ProjectId: v.ProjectId,
 		SpaceId:   v.SpaceId,
-		ProductId: v.ProductId,
-		DeviceId:  v.DeviceId,
+		ProductId: product, //v.ProductId,
+		DeviceId:  device,  //v.DeviceId,支持同产品
 		Level:     v.Level,
 		Type:      v.Type,
 		Title:     v.Title,
@@ -147,7 +150,7 @@ func (v *Validator) OnDeviceValuesChange(ctx map[string]any) {
 
 func (v *Validator) OnDeviceAdd(dev *device.Device) {
 	if v.DeviceId.IsZero() && !v.ProductId.IsZero() {
-		dev.Watch(v)
+		dev.WatchValues(v)
 	}
 }
 

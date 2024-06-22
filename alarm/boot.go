@@ -6,7 +6,7 @@ func init() {
 	boot.Register("alarm", &boot.Task{
 		Startup:  Startup, //启动
 		Shutdown: Shutdown,
-		Depends:  []string{"web", "pool", "log", "database", "product", "device", "project", "space"},
+		Depends:  []string{"web", "pool", "log", "database", "device"},
 	})
 }
 

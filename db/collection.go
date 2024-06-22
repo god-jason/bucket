@@ -36,11 +36,11 @@ func BulkWrite(tab string, models []mongo.WriteModel) (*mongo.BulkWriteResult, e
 
 func InsertOne(tab string, doc any) (id primitive.ObjectID, err error) {
 	if db == nil {
-		return _id, ErrDisconnect
+		return primitive.NilObjectID, ErrDisconnect
 	}
 	ret, err := db.Collection(tab).InsertOne(context.Background(), doc)
 	if err != nil {
-		return _id, errors.Wrap(err)
+		return primitive.NilObjectID, errors.Wrap(err)
 	}
 	return ParseObjectId(ret.InsertedID)
 }
@@ -252,4 +252,34 @@ func CreateIndex(tab string, keys []string) error {
 		Options: options.Index().SetSparse(true), //稀松索引
 	})
 	return errors.Wrap(err)
+}
+
+type _id struct {
+	Id primitive.ObjectID `bson:"_id"`
+}
+
+func DistinctId(tab string, filter any) (ids []primitive.ObjectID, err error) {
+	if db == nil {
+		return nil, ErrDisconnect
+	}
+
+	opts := options.Find()
+	if filter == nil {
+		filter = bson.M{}
+	}
+	opts.Projection = bson.M{"_id": 1}
+
+	ret, err := db.Collection(tab).Find(context.Background(), filter, opts)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	var _ids []_id
+	err = ret.All(context.Background(), &_ids)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	for _, _id := range _ids {
+		ids = append(ids, _id.Id)
+	}
+	return ids, nil
 }

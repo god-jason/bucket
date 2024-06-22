@@ -13,6 +13,7 @@ func init() {
 	api.Register("GET", "timer/detail/:id", api.Detail(&_table, nil))
 	api.Register("GET", "timer/enable/:id", api.Update(&_table, Load))
 	api.Register("GET", "timer/disable/:id", api.Delete(&_table, Unload))
+	api.Register("GET", "timer/execute/:id", api.Operator(Execute))
 	api.Register("POST", "timer/count", api.Count(&_table))
 	api.Register("POST", "timer/search", api.Search(&_table, nil))
 	api.Register("POST", "timer/group", api.Group(&_table, nil))

@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-var _id primitive.ObjectID
-
 func ParseObjectId(id any) (primitive.ObjectID, error) {
 	switch val := id.(type) {
 	case primitive.ObjectID:
@@ -15,12 +13,8 @@ func ParseObjectId(id any) (primitive.ObjectID, error) {
 	case string:
 		return primitive.ObjectIDFromHex(val)
 	default:
-		return _id, errors.New("invalid object id")
+		return primitive.NilObjectID, errors.New("invalid object id")
 	}
-}
-
-func EmptyObjectId() primitive.ObjectID {
-	return _id
 }
 
 func ConvertObjectId(doc any) {

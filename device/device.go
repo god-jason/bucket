@@ -5,6 +5,8 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/pkg/errors"
 	"github.com/god-jason/bucket/product"
+	"github.com/god-jason/bucket/project"
+	"github.com/god-jason/bucket/space"
 	"github.com/mochi-mqtt/server/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
@@ -42,7 +44,7 @@ type Device struct {
 	gatewayClient *mqtt.Client
 
 	//监听
-	watchers map[base.DeviceValuesWatcher]any
+	valuesWatchers map[base.ValuesWatcher]any
 }
 
 func (d *Device) Open() error {
@@ -70,9 +72,27 @@ func (d *Device) Open() error {
 
 	d.pendingActions = make(map[string]chan map[string]any)
 
-	d.watchers = make(map[base.DeviceValuesWatcher]any)
+	d.valuesWatchers = make(map[base.ValuesWatcher]any)
 
 	d.running = true
+
+	//找到项目，空间，注册订阅
+	if !d.ProjectId.IsZero() {
+		prj := project.Get(d.ProjectId.Hex())
+		if prj != nil {
+			d.WatchValues(prj)
+		} else {
+			//return errors.New("找不到项目")
+		}
+	}
+	if !d.SpaceId.IsZero() {
+		spc := space.Get(d.SpaceId.Hex())
+		if spc != nil {
+			d.WatchValues(spc)
+		} else {
+			//return errors.New("找不到空间")
+		}
+	}
 
 	return nil
 }
@@ -80,8 +100,9 @@ func (d *Device) Open() error {
 func (d *Device) Close() error {
 	d.running = false
 	d.pendingActions = nil
-	d.watchers = nil
+	d.valuesWatchers = nil
 	d.aggregators = nil
+
 	return nil
 }
 
@@ -151,8 +172,8 @@ func (d *Device) PatchValues(values map[string]any) {
 	}
 
 	//监听变化
-	for w, _ := range d.watchers {
-		w.OnDeviceValuesChange(d.values)
+	for w, _ := range d.valuesWatchers {
+		w.OnValuesChange(d.productId, d.Id, d.values)
 	}
 }
 
@@ -213,10 +234,10 @@ func (d *Device) Values() map[string]any {
 	return d.values
 }
 
-func (d *Device) Watch(watcher base.DeviceValuesWatcher) {
-	d.watchers[watcher] = 1
+func (d *Device) WatchValues(watcher base.ValuesWatcher) {
+	d.valuesWatchers[watcher] = 1
 }
 
-func (d *Device) UnWatch(watcher base.DeviceValuesWatcher) {
-	delete(d.watchers, watcher)
+func (d *Device) UnWatchValues(watcher base.ValuesWatcher) {
+	delete(d.valuesWatchers, watcher)
 }
