@@ -46,7 +46,7 @@ func Startup() (err error) {
 		return true
 	})
 	end := time.Now().UnixMilli()
-	fmt.Printf("[startup] took %dms\n", end-start)
+	fmt.Printf("[boot] %dms\n", end-start)
 	return
 }
 
@@ -86,9 +86,16 @@ func Open(name string) error {
 	}
 
 	//log.Info("[boot] open", name)
-	println("[startup]", name)
+	start := time.Now().UnixMilli()
+	//println("[startup]", name)
+
 	//正式启动
 	err := task.Startup()
+
+	//计算时间
+	end := time.Now().UnixMilli()
+	fmt.Printf("[startup] %s \t %dms\n", name, end-start)
+
 	task.booted.Store(true) //不管成功失败，都代表已经启动了
 	if err != nil {
 		return err
