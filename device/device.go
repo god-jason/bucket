@@ -76,7 +76,7 @@ func (d *Device) Open() error {
 
 	d.running = true
 
-	//找到项目，空间，注册订阅
+	//找到项目，空间，主动汇报数据
 	if !d.ProjectId.IsZero() {
 		prj := project.Get(d.ProjectId.Hex())
 		if prj != nil {

@@ -20,8 +20,7 @@ var _tags = []*table.Field{
 }
 
 var _table = table.Table{
-	Name:   base.BucketHistory,
-	Schema: nil,
+	Name: base.BucketHistory,
 	Fields: []*table.Field{
 		{Name: "tags", Label: "标签", Type: "object", Children: _tags},
 		{Name: "date", Label: "日期", Type: "date"},

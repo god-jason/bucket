@@ -6,8 +6,7 @@ import (
 )
 
 var _validatorTable = table.Table{
-	Name:   base.BucketValidator,
-	Schema: nil,
+	Name: base.BucketValidator,
 	Fields: []*table.Field{
 		base.ProjectIdField,
 		base.SpaceIdField,
@@ -23,8 +22,7 @@ var _validatorTable = table.Table{
 }
 
 var _alarmTable = table.Table{
-	Name:   base.BucketAlarm,
-	Schema: nil,
+	Name: base.BucketAlarm,
 	Fields: []*table.Field{
 		base.ProjectIdField,
 		base.SpaceIdField,

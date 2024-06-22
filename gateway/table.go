@@ -6,8 +6,7 @@ import (
 )
 
 var _table = table.Table{
-	Name:   base.BucketGateway,
-	Schema: nil,
+	Name: base.BucketGateway,
 	Fields: []*table.Field{
 		{Name: "name", Label: "名称", Type: "string"},
 		{Name: "username", Label: "用户名", Type: "string"},

@@ -6,8 +6,7 @@ import (
 )
 
 var _table = table.Table{
-	Name:   base.BucketScene,
-	Schema: nil,
+	Name: base.BucketScene,
 	Fields: []*table.Field{
 		{Name: "project_id", Label: "项目", Type: "string", Index: true, Required: true, Foreign: &table.Foreign{
 			Table: "bucket.project",

@@ -9,7 +9,7 @@ import (
 func init() {
 	api.Register("POST", "device/create", api.Create(&_table, Load))
 	api.Register("POST", "device/update/:id", api.Update(&_table, Load))
-	api.Register("GET", "device/delete/:id", api.Delete(&_table, Unload)) //项目，空间，设备列表 修改
+	api.Register("GET", "device/delete/:id", api.Delete(&_table, Unload))
 	api.Register("GET", "device/detail/:id", api.Detail(&_table, nil))
 	api.Register("GET", "device/enable/:id", api.Enable(&_table, Open))
 	api.Register("GET", "device/disable/:id", api.Disable(&_table, Close))

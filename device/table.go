@@ -6,8 +6,7 @@ import (
 )
 
 var _table = table.Table{
-	Name:   base.BucketDevice,
-	Schema: nil,
+	Name: base.BucketDevice,
 	Fields: []*table.Field{
 		base.ProductIdField,
 		base.ProjectIdField,

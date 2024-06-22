@@ -6,8 +6,7 @@ import (
 )
 
 var _table = table.Table{
-	Name:   base.BucketProduct,
-	Schema: nil,
+	Name: base.BucketProduct,
 	Fields: []*table.Field{
 		{Name: "name", Label: "名称", Type: "string", Required: true},
 		{Name: "icon", Label: "图标", Type: "string"},

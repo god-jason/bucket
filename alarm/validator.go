@@ -37,12 +37,7 @@ type Validator struct {
 	RepeatTimeout int64 `json:"repeat_timeout,omitempty" bson:"repeat_timeout,omitempty"`
 	RepeatTimes   int   `json:"repeat_times,omitempty" bson:"repeat_times,omitempty"`
 
-	//last  bool  //上一次计算结果
-	//start int64 //发生时间
-	//times int   //重复次数
-
-	//contexts map[string]*Context //加锁
-	contexts lib.Map[Context]
+	contexts lib.Map[Context] //解绑设备，会导致内存泄露，虽然不大 todo 监听解绑
 }
 
 func (v *Validator) Open() error {
