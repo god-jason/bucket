@@ -228,7 +228,7 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	}
 
 	//把差异保存到修改历史表
-	_, _ = db.InsertOne(t.Name+".change", bson.M{"id": id, "base": result, "change": update})
+	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": id, "base": result, "change": update})
 
 	//after update
 	if t.Hook != nil && t.Hook.AfterUpdate != nil {
