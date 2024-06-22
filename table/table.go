@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 type Table struct {
@@ -78,6 +79,17 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		_, err = vm.RunProgram(hook)
 		if err != nil {
 			return primitive.NilObjectID, errors.Wrap(err)
+		}
+	}
+
+	//补充创建时间
+	if mp, ok := doc.(map[string]interface{}); ok {
+		for _, f := range t.Fields {
+			if f.Created || f.Updated {
+				if _, ok := mp[f.Name]; !ok {
+					mp[f.Name] = time.Now()
+				}
+			}
 		}
 	}
 
@@ -218,6 +230,17 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 		_, err := vm.RunProgram(hook)
 		if err != nil {
 			return errors.Wrap(err)
+		}
+	}
+
+	//补充更新时间
+	if mp, ok := update.(map[string]interface{}); ok {
+		for _, f := range t.Fields {
+			if f.Updated {
+				if _, ok := mp[f.Name]; !ok {
+					mp[f.Name] = time.Now()
+				}
+			}
 		}
 	}
 
