@@ -8,7 +8,7 @@ import (
 var _cron *cron.Cron
 
 func init() {
-	boot.Register("scene", &boot.Task{
+	boot.Register("timer", &boot.Task{
 		Startup:  Startup, //启动
 		Shutdown: Shutdown,
 		Depends:  []string{"web", "pool", "log", "database", "project", "space"},

@@ -8,7 +8,7 @@ func BatchLoad[T any](t *Table, filter bson.D, page int, f func(t T) error) erro
 	var skip int = 0
 	for {
 		var ts []T
-		err := t.Find(filter, bson.D{{}}, int64(skip), int64(page), ts)
+		err := t.Find(filter, nil, int64(skip), int64(page), &ts)
 		if err != nil {
 			return err
 		}

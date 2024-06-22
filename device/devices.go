@@ -1,6 +1,7 @@
 package device
 
 import (
+	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/errors"
@@ -59,7 +60,7 @@ func Close(id primitive.ObjectID) error {
 }
 
 func LoadAll() error {
-	return table.BatchLoad[*Device](&_table, nil, 100, func(t *Device) error {
+	return table.BatchLoad[*Device](&_table, base.FilterEnabled, 100, func(t *Device) error {
 		//并行加载
 		err := From(t)
 		if err != nil {
