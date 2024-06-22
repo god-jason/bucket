@@ -2,7 +2,9 @@ package space
 
 import (
 	"github.com/god-jason/bucket/base"
+	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var _table = table.Table{
@@ -13,7 +15,21 @@ var _table = table.Table{
 	},
 }
 
+var _hook = table.Hook{
+	AfterInsert: func(id primitive.ObjectID, doc any) error {
+		return Load(id)
+	},
+	AfterUpdate: func(id primitive.ObjectID, doc any) error {
+		return Load(id)
+	},
+	AfterDelete: func(id primitive.ObjectID, doc db.Document) error {
+		//todo 删除相关
+		return Unload(id)
+	},
+}
+
 func init() {
+	_table.Hook = &_hook
 	table.Register(&_table)
 }
 

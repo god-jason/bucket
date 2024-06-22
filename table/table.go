@@ -22,7 +22,7 @@ type Table struct {
 	scripts map[string]*goja.Program
 
 	TimeSeries *options.TimeSeriesOptions `json:"-"` //时间序列参数
-	Hook       *NativeHook                `json:"-"`
+	Hook       *Hook                      `json:"-"`
 }
 
 func (t *Table) init() (err error) {
@@ -66,6 +66,12 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	}
 
 	//before insert
+	if t.Hook != nil && t.Hook.BeforeInsert != nil {
+		err := t.Hook.BeforeInsert(&doc)
+		if err != nil {
+			return primitive.NilObjectID, errors.Wrap(err)
+		}
+	}
 	if hook, ok := t.scripts["before.insert"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("object", doc)
@@ -85,6 +91,12 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	//struct 类型用 反射
 
 	//after insert
+	if t.Hook != nil && t.Hook.AfterInsert != nil {
+		err := t.Hook.AfterInsert(ret, &doc)
+		if err != nil {
+			return primitive.NilObjectID, errors.Wrap(err)
+		}
+	}
 	if hook, ok := t.scripts["after.insert"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", ret)
@@ -101,9 +113,11 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 func (t *Table) Import(docs []any) (ids []primitive.ObjectID, err error) {
 
 	//没有hook，则直接InsertMany
-	if _, ok := t.scripts["before.insert"]; !ok {
-		if _, ok := t.scripts["after.insert"]; !ok {
-			return db.InsertMany(t.Name, docs)
+	if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
+		if _, ok := t.scripts["before.insert"]; !ok {
+			if _, ok := t.scripts["after.insert"]; !ok {
+				return db.InsertMany(t.Name, docs)
+			}
 		}
 	}
 
@@ -120,13 +134,15 @@ func (t *Table) Import(docs []any) (ids []primitive.ObjectID, err error) {
 func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, err error) {
 
 	//没有hook，则直接InsertMany
-	if _, ok := t.scripts["before.insert"]; !ok {
-		if _, ok := t.scripts["after.insert"]; !ok {
-			ds := make([]any, 0, len(docs))
-			for _, doc := range docs {
-				ds = append(ds, doc)
+	if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
+		if _, ok := t.scripts["before.insert"]; !ok {
+			if _, ok := t.scripts["after.insert"]; !ok {
+				ds := make([]any, 0, len(docs))
+				for _, doc := range docs {
+					ds = append(ds, doc)
+				}
+				return db.InsertMany(t.Name, ds)
 			}
-			return db.InsertMany(t.Name, ds)
 		}
 	}
 
@@ -142,14 +158,22 @@ func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, er
 
 func (t *Table) Delete(id primitive.ObjectID) error {
 	//没有hook，则直接Delete
-	if _, ok := t.scripts["before.delete"]; !ok {
-		if _, ok := t.scripts["after.delete"]; !ok {
-			_, err := db.DeleteById(t.Name, id)
-			return err
+	if t.Hook == nil || t.Hook.BeforeDelete == nil && t.Hook.AfterDelete == nil {
+		if _, ok := t.scripts["before.delete"]; !ok {
+			if _, ok := t.scripts["after.delete"]; !ok {
+				_, err := db.DeleteById(t.Name, id)
+				return err
+			}
 		}
 	}
 
 	//before delete
+	if t.Hook != nil && t.Hook.BeforeDelete != nil {
+		err := t.Hook.BeforeDelete(id)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
 	if hook, ok := t.scripts["before.delete"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
@@ -166,6 +190,12 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 	}
 
 	//after delete
+	if t.Hook != nil && t.Hook.AfterDelete != nil {
+		err := t.Hook.AfterDelete(id, result)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
 	if hook, ok := t.scripts["after.delete"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
@@ -181,14 +211,22 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 
 func (t *Table) Update(id primitive.ObjectID, update any) error {
 	//没有hook，则直接Update
-	if _, ok := t.scripts["before.update"]; !ok {
-		if _, ok := t.scripts["after.update"]; !ok {
-			_, err := db.UpdateById(t.Name, id, update, false)
-			return err
+	if t.Hook == nil || t.Hook.BeforeUpdate == nil && t.Hook.AfterUpdate == nil {
+		if _, ok := t.scripts["before.update"]; !ok {
+			if _, ok := t.scripts["after.update"]; !ok {
+				_, err := db.UpdateById(t.Name, id, update, false)
+				return err
+			}
 		}
 	}
 
 	//before update
+	if t.Hook != nil && t.Hook.BeforeUpdate != nil {
+		err := t.Hook.BeforeUpdate(id, update)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
 	if hook, ok := t.scripts["before.update"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
@@ -209,6 +247,12 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	}
 
 	//after update
+	if t.Hook != nil && t.Hook.AfterUpdate != nil {
+		err := t.Hook.AfterUpdate(id, update)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
 	if hook, ok := t.scripts["after.update"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
