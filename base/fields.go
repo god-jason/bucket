@@ -32,6 +32,13 @@ var SpaceIdField = &table.Field{Name: "space_id", Label: "空间", Type: "string
 	As:    "space",
 }}
 
+var UserIdField = &table.Field{Name: "user_id", Label: "用户", Type: "string", Index: true, Required: true, Foreign: &table.Foreign{
+	Table: BucketSpace,
+	Field: "_id",
+	Let:   "name",
+	As:    "user",
+}}
+
 var ActionFields = []*table.Field{
 	ProductIdField,
 	DeviceIdField,
