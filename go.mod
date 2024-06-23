@@ -19,7 +19,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/viper v1.19.0
-	github.com/syndtr/goleveldb v1.0.0
 	go.mongodb.org/mongo-driver v1.15.0
 	golang.org/x/crypto v0.24.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
