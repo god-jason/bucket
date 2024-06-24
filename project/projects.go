@@ -4,6 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -28,9 +29,12 @@ func From(t *Project) (err error) {
 
 func Load(id primitive.ObjectID) error {
 	var project Project
-	err := _table.Get(id, &project)
+	has, err := _table.Get(id, &project)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return exception.New("找不到记录")
 	}
 	return From(&project)
 }

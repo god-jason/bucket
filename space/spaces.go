@@ -4,6 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -24,9 +25,12 @@ func From(t *Space) (err error) {
 
 func Load(id primitive.ObjectID) error {
 	var space Space
-	err := _table.Get(id, &space)
+	has, err := _table.Get(id, &space)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return exception.New("找不到记录")
 	}
 	return From(&space)
 }

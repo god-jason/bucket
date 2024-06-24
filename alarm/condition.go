@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/PaesslerAG/gval"
 	"github.com/god-jason/bucket/pkg/calc"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 )
 
 type Condition struct {
@@ -26,7 +26,7 @@ func (a *Condition) Init() error {
 
 func (a *Condition) Eval(ctx map[string]any) (bool, error) {
 	if len(a.Conditions) == 0 {
-		return false, errors.New("没有对比")
+		return false, exception.New("没有对比")
 	}
 
 	//外部用or

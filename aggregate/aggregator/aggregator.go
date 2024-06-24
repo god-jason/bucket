@@ -1,10 +1,6 @@
 package aggregator
 
-import (
-	"github.com/god-jason/bucket/pkg/errors"
-)
-
-var ErrorBlank = errors.New("无数据")
+import "github.com/god-jason/bucket/pkg/exception"
 
 type Aggregator interface {
 	Push(any) error
@@ -34,7 +30,7 @@ func New(typ string) (agg Aggregator, err error) {
 	case "last":
 		agg = &last{}
 	default:
-		err = errors.New("未知的聚合类型" + typ)
+		err = exception.New("未知的聚合类型" + typ)
 	}
 	return
 }

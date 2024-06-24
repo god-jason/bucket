@@ -1,9 +1,10 @@
 package table
 
 import (
+	"errors"
 	"github.com/dop251/goja"
 	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/pkg/javascript"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
+
+var NotFound = errors.New("找不到记录")
 
 type Table struct {
 	Name   string   `json:"name,omitempty"`
@@ -62,7 +65,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	if t.schema != nil {
 		err = t.schema.Validate(doc)
 		if err != nil {
-			return primitive.NilObjectID, errors.Wrap(err)
+			return primitive.NilObjectID, exception.Wrap(err)
 		}
 	}
 
@@ -70,7 +73,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	if t.Hook != nil && t.Hook.BeforeInsert != nil {
 		err := t.Hook.BeforeInsert(&doc)
 		if err != nil {
-			return primitive.NilObjectID, errors.Wrap(err)
+			return primitive.NilObjectID, exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["before.insert"]; ok {
@@ -78,7 +81,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		_ = vm.Set("object", doc)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
-			return primitive.NilObjectID, errors.Wrap(err)
+			return primitive.NilObjectID, exception.Wrap(err)
 		}
 	}
 
@@ -106,7 +109,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	if t.Hook != nil && t.Hook.AfterInsert != nil {
 		err := t.Hook.AfterInsert(ret, &doc)
 		if err != nil {
-			return primitive.NilObjectID, errors.Wrap(err)
+			return primitive.NilObjectID, exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["after.insert"]; ok {
@@ -115,7 +118,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		_ = vm.Set("object", doc)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
-			return primitive.NilObjectID, errors.Wrap(err)
+			return primitive.NilObjectID, exception.Wrap(err)
 		}
 	}
 
@@ -173,7 +176,7 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 	if t.Hook != nil && t.Hook.BeforeDelete != nil {
 		err := t.Hook.BeforeDelete(id)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["before.delete"]; ok {
@@ -181,14 +184,17 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 		_ = vm.Set("_id", id)
 		_, err := vm.RunProgram(hook)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 
 	var result db.Document
-	err := db.FindOneAndDelete(t.Name, bson.D{{"_id", id}}, &result)
+	has, err := db.FindOneAndDelete(t.Name, bson.D{{"_id", id}}, &result)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return NotFound
 	}
 
 	//把删除保存到修改历史表
@@ -198,7 +204,7 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 	if t.Hook != nil && t.Hook.AfterDelete != nil {
 		err := t.Hook.AfterDelete(id, result)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["after.delete"]; ok {
@@ -207,7 +213,7 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 		_ = vm.Set("object", result)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 
@@ -220,7 +226,7 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	if t.Hook != nil && t.Hook.BeforeUpdate != nil {
 		err := t.Hook.BeforeUpdate(id, update)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["before.update"]; ok {
@@ -229,7 +235,7 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 		_ = vm.Set("change", update)
 		_, err := vm.RunProgram(hook)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 
@@ -245,9 +251,12 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	}
 
 	var result db.Document
-	err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", id}}, bson.D{{"$set", update}}, &result)
+	has, err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", id}}, bson.D{{"$set", update}}, &result)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return NotFound
 	}
 
 	//把差异保存到修改历史表
@@ -257,7 +266,7 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	if t.Hook != nil && t.Hook.AfterUpdate != nil {
 		err := t.Hook.AfterUpdate(id, update, result)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["after.update"]; ok {
@@ -267,18 +276,18 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 		_ = vm.Set("base", result)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
-			return errors.Wrap(err)
+			return exception.Wrap(err)
 		}
 	}
 
 	return err
 }
 
-func (t *Table) Get(id primitive.ObjectID, result any) error {
+func (t *Table) Get(id primitive.ObjectID, result any) (has bool, err error) {
 	return db.FindOne(t.Name, bson.D{{"_id", id}}, result)
 }
 
-func (t *Table) GetDocument(id primitive.ObjectID, result *db.Document) error {
+func (t *Table) GetDocument(id primitive.ObjectID, result *db.Document) (has bool, err error) {
 	return db.FindOne(t.Name, bson.D{{"_id", id}}, result)
 }
 

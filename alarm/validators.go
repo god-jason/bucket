@@ -4,6 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -24,9 +25,12 @@ func From(v *Validator) (err error) {
 
 func Load(id primitive.ObjectID) error {
 	var validator Validator
-	err := _validatorTable.Get(id, &validator)
+	has, err := _validatorTable.Get(id, &validator)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return exception.New("找不到记录")
 	}
 	return From(&validator)
 }

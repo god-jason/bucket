@@ -5,7 +5,7 @@ import (
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/dop251/goja_nodejs/url"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 )
 
 var req require.Registry
@@ -32,7 +32,7 @@ func Compile(src string) (*goja.Program, error) {
 func Run(p *goja.Program) (any, error) {
 	ret, err := Runtime().RunProgram(p)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, exception.Wrap(err)
 	}
 	return ret.Export(), nil
 }
@@ -40,7 +40,7 @@ func Run(p *goja.Program) (any, error) {
 func Exec(src string) (any, error) {
 	ret, err := Runtime().RunString(src)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, exception.Wrap(err)
 	}
 	return ret.Export(), nil
 }

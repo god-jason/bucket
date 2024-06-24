@@ -1,7 +1,5 @@
 package condition
 
-import "github.com/god-jason/bucket/pkg/errors"
-
 type Or struct {
 	Compares []*Compare `json:"compares,omitempty"`
 }
@@ -18,7 +16,7 @@ func (a *Or) Init() error {
 
 func (a *Or) Eval(ctx map[string]any) (bool, error) {
 	if len(a.Compares) == 0 {
-		return false, errors.New("没有对比")
+		return false, exception.New("没有对比")
 	}
 	for _, c := range a.Compares {
 		ret, err := c.Eval(ctx)

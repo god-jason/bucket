@@ -16,9 +16,13 @@ func Detail(tab *table.Table, after func(id primitive.ObjectID, doc db.Document)
 		}
 
 		var doc db.Document
-		err = tab.Get(id, &doc)
+		has, err := tab.Get(id, &doc)
 		if err != nil {
 			Error(ctx, err)
+			return
+		}
+		if !has {
+			Fail(ctx, "找不到记录")
 			return
 		}
 

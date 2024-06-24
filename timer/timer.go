@@ -5,7 +5,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/pool"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
@@ -37,17 +37,17 @@ func (s *Timer) Open() (err error) {
 		if spc != nil {
 			s.deviceContainer = spc
 		} else {
-			return errors.New("找不到空间")
+			return exception.New("找不到空间")
 		}
 	} else if !s.ProjectId.IsZero() {
 		prj := project.Get(s.ProjectId.Hex())
 		if prj != nil {
 			s.deviceContainer = prj
 		} else {
-			return errors.New("找不到项目")
+			return exception.New("找不到项目")
 		}
 	} else {
-		return errors.New("无效场景")
+		return exception.New("无效场景")
 	}
 
 	//星期处理
@@ -125,7 +125,7 @@ func (s *Timer) Execute() error {
 					return err
 				}
 			} else {
-				return errors.New("设备找不到")
+				return exception.New("设备找不到")
 			}
 		} else if !a.ProductId.IsZero() {
 			if s.deviceContainer != nil {
@@ -141,14 +141,14 @@ func (s *Timer) Execute() error {
 							return err
 						}
 					} else {
-						return errors.New("设备找不到")
+						return exception.New("设备找不到")
 					}
 				}
 			} else {
-				return errors.New("需要指定产品ID")
+				return exception.New("需要指定产品ID")
 			}
 		} else {
-			return errors.New("无效的动作")
+			return exception.New("无效的动作")
 		}
 	}
 	return nil

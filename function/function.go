@@ -2,7 +2,7 @@ package function
 
 import (
 	"github.com/dop251/goja"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 )
 
 type Function struct {
@@ -15,5 +15,5 @@ type Function struct {
 
 func (f *Function) Compile() (err error) {
 	f.program, err = goja.Compile(f.Name, f.Script, false)
-	return errors.Wrap(err)
+	return exception.Wrap(err)
 }

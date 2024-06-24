@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"strings"
 )
@@ -13,7 +13,7 @@ func ParseObjectId(id any) (primitive.ObjectID, error) {
 	case string:
 		return primitive.ObjectIDFromHex(val)
 	default:
-		return primitive.NilObjectID, errors.New("invalid object id")
+		return primitive.NilObjectID, exception.New("invalid object id")
 	}
 }
 

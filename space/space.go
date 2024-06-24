@@ -3,7 +3,7 @@ package space
 import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -33,7 +33,7 @@ func (s *Space) Close() error {
 
 func (s *Space) Devices(productId primitive.ObjectID) (ids []primitive.ObjectID, err error) {
 	if !s.running {
-		return nil, errors.New("空间已经关闭")
+		return nil, exception.New("空间已经关闭")
 	}
 	return db.DistinctId(base.BucketDevice, bson.D{
 		{"space_id", s.Id},

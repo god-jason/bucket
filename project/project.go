@@ -3,7 +3,7 @@ package project
 import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -36,7 +36,7 @@ func (p *Project) Close() error {
 
 func (p *Project) Devices(productId primitive.ObjectID) (ids []primitive.ObjectID, err error) {
 	if !p.running {
-		return nil, errors.New("项目已经关闭")
+		return nil, exception.New("项目已经关闭")
 	}
 	return db.DistinctId(base.BucketDevice, bson.D{
 		{"project_id", p.Id},

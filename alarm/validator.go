@@ -4,7 +4,7 @@ import (
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -44,27 +44,27 @@ func (v *Validator) Open() error {
 	if !v.DeviceId.IsZero() {
 		dev := device.Get(v.DeviceId.Hex())
 		if dev == nil {
-			return errors.New("找不到设备")
+			return exception.New("找不到设备")
 		}
 		dev.WatchValues(v)
 	} else if !v.ProductId.IsZero() {
 		if !v.SpaceId.IsZero() {
 			spc := space.Get(v.SpaceId.Hex())
 			if spc == nil {
-				return errors.New("找不到空间")
+				return exception.New("找不到空间")
 			}
 			spc.WatchValues(v)
 		} else if !v.ProjectId.IsZero() {
 			prj := project.Get(v.ProjectId.Hex())
 			if prj == nil {
-				return errors.New("找不到项目")
+				return exception.New("找不到项目")
 			}
 			prj.WatchValues(v)
 		} else {
-			return errors.New("不能仅指定产品")
+			return exception.New("不能仅指定产品")
 		}
 	} else {
-		return errors.New("没有指定设备和产品")
+		return exception.New("没有指定设备和产品")
 	}
 
 	return v.Condition.Init()

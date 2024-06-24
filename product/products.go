@@ -3,6 +3,7 @@ package product
 import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -20,9 +21,12 @@ func From(v *Product) (err error) {
 
 func Load(id primitive.ObjectID) error {
 	var product Product
-	err := _table.Get(id, &product)
+	has, err := _table.Get(id, &product)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return exception.New("找不到记录")
 	}
 	return From(&product)
 }

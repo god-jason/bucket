@@ -5,7 +5,7 @@ import (
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
@@ -15,14 +15,12 @@ import (
 
 const Path = "tables"
 
-var ErrTableNotFound = errors.New("没有表定义")
-
 var tables lib.Map[Table]
 
 func Get(name string) (*Table, error) {
 	table := tables.Load(name)
 	if table == nil {
-		return nil, errors.New("没有表定义 " + name)
+		return nil, exception.New("没有表定义 " + name)
 	}
 	return table, nil
 }

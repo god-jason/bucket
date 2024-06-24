@@ -37,8 +37,11 @@ func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet)
 
 	//检查用户名密码
 	var gw Gateway
-	err = db.FindById(base.BucketGateway, id, &gw)
+	has, err := db.FindById(base.BucketGateway, id, &gw)
 	if err != nil {
+		return false
+	}
+	if !has {
 		return false
 	}
 

@@ -4,7 +4,7 @@ import (
 	"github.com/god-jason/bucket/action"
 	"github.com/god-jason/bucket/aggregate/aggregator"
 	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/product"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
@@ -53,7 +53,7 @@ func (d *Device) Open() error {
 
 	d.product = product.Get(d.productId.Hex())
 	if d.product == nil {
-		return errors.New("找不到产品" + d.productId.Hex())
+		return exception.New("找不到产品" + d.productId.Hex())
 	}
 
 	d.values = make(map[string]any)
@@ -194,10 +194,10 @@ func (d *Device) WriteValues(values map[string]any) error {
 		p := d.product.GetProperty(k)
 		if p != nil {
 			if !p.Writable {
-				return errors.New(p.Label + " 不能写入")
+				return exception.New(p.Label + " 不能写入")
 			}
 		} else {
-			return errors.New("未知的属性：" + k)
+			return exception.New("未知的属性：" + k)
 		}
 	}
 
@@ -240,7 +240,7 @@ func (d *Device) Action(name string, values map[string]any) (map[string]any, err
 		select {
 		case <-time.After(time.Minute):
 			_ = action.Table().Update(id, bson.M{"result": "timeout"})
-			return nil, errors.New("超时")
+			return nil, exception.New("超时")
 		case ret := <-d.pendingActions[name]:
 			_ = action.Table().Update(id, bson.M{"return": ret.Return, "result": ret.Result})
 			return ret.Return, nil
@@ -248,7 +248,7 @@ func (d *Device) Action(name string, values map[string]any) (map[string]any, err
 	}
 
 	_ = action.Table().Update(id, bson.M{"result": "offline"})
-	return nil, errors.New("不可到达")
+	return nil, exception.New("不可到达")
 }
 
 func (d *Device) Values() map[string]any {

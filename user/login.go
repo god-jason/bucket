@@ -65,9 +65,8 @@ func login(ctx *gin.Context) {
 	}
 
 	var password Password
-	err = _passwordTable.Get(user.Id, &password)
+	has, err := _passwordTable.Get(user.Id, &password)
 	if err != nil {
-		//todo 找不到
 		api.Error(ctx, err)
 		return
 	}
@@ -136,22 +135,33 @@ func password(ctx *gin.Context) {
 	}
 
 	var pwd Password
-	err = _passwordTable.Get(oid, &pwd)
+	has, err := _passwordTable.Get(oid, &pwd)
 	if err != nil {
-		//todo 找不到
 		api.Error(ctx, err)
-		return
-	}
-	if obj.Old != pwd.Password {
-		api.Fail(ctx, "密码错误")
 		return
 	}
 
-	//pwd.Password = obj.New //前端已经加密过
-	err = _passwordTable.Update(oid, bson.M{"password": pwd})
-	if err != nil {
-		api.Error(ctx, err)
-		return
+	if !has {
+		pwd.Id = oid
+		pwd.Password = obj.New //没有
+
+		_, err = _passwordTable.Insert(&pwd)
+		if err != nil {
+			api.Error(ctx, err)
+			return
+		}
+	} else {
+		if obj.Old != pwd.Password {
+			api.Fail(ctx, "密码错误")
+			return
+		}
+
+		//pwd.Password = obj.New //前端已经加密过
+		err = _passwordTable.Update(oid, bson.M{"password": pwd})
+		if err != nil {
+			api.Error(ctx, err)
+			return
+		}
 	}
 
 	api.OK(ctx, nil)

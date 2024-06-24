@@ -4,7 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -25,9 +25,12 @@ func From(t *Scene) (err error) {
 
 func Load(id primitive.ObjectID) error {
 	var scene Scene
-	err := _table.Get(id, &scene)
+	has, err := _table.Get(id, &scene)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return exception.New("找不到记录")
 	}
 	return From(&scene)
 }
@@ -57,5 +60,5 @@ func Execute(id primitive.ObjectID) error {
 	if t != nil {
 		return t.Execute()
 	}
-	return errors.New("找不到场景")
+	return exception.New("找不到场景")
 }

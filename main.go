@@ -15,6 +15,7 @@ import (
 	_ "github.com/god-jason/bucket/scene"
 	_ "github.com/god-jason/bucket/table"
 	_ "github.com/god-jason/bucket/timer"
+	_ "github.com/god-jason/bucket/user"
 	"github.com/god-jason/bucket/web"
 )
 

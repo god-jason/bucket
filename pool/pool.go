@@ -3,7 +3,7 @@ package pool
 import (
 	"github.com/god-jason/bucket/config"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	ants "github.com/panjf2000/ants/v2"
 )
 
@@ -13,7 +13,7 @@ func Startup() (err error) {
 	Pool, err = ants.NewPool(config.GetInt(MODULE, "size"), ants.WithPanicHandler(func(err any) {
 		log.Error(err)
 	}))
-	return errors.Wrap(err)
+	return exception.Wrap(err)
 }
 
 func Shutdown() error {
@@ -29,5 +29,5 @@ func Insert(task func()) error {
 		go task()
 	}
 	err := Pool.Submit(task)
-	return errors.Wrap(err)
+	return exception.Wrap(err)
 }

@@ -30,13 +30,11 @@ func auth(ctx *gin.Context) {
 	}
 
 	var obj Password
-	err = _passwordTable.Get(user.Id, &obj)
+	has, err := _passwordTable.Get(user.Id, &obj)
 	if err != nil {
 		api.Error(ctx, err)
 		return
 	}
-	//todo 找不到
-
 	//初始化密码
 	if !has {
 		dp := "123456"

@@ -19,9 +19,13 @@ func ApiDetail(ctx *gin.Context) {
 	}
 
 	var doc db.Document
-	err = table.Get(id, &doc)
+	has, err := table.Get(id, &doc)
 	if err != nil {
 		Error(ctx, err)
+		return
+	}
+	if !has {
+		Fail(ctx, "找不到记录")
 		return
 	}
 

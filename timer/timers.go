@@ -4,7 +4,7 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -25,9 +25,12 @@ func From(t *Timer) (err error) {
 
 func Load(id primitive.ObjectID) error {
 	var timer Timer
-	err := _table.Get(id, &timer)
+	has, err := _table.Get(id, &timer)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return exception.New("找不到记录")
 	}
 	return From(&timer)
 }
@@ -57,5 +60,5 @@ func Execute(id primitive.ObjectID) error {
 	if t != nil {
 		return t.Execute()
 	}
-	return errors.New("找不到定时器")
+	return exception.New("找不到定时器")
 }

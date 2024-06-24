@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/config"
 	"github.com/god-jason/bucket/log"
-	"github.com/god-jason/bucket/pkg/errors"
+	"github.com/god-jason/bucket/pkg/exception"
 	"net/http"
 	"path"
 	"strconv"
@@ -58,7 +58,7 @@ func Startup() error {
 
 func Shutdown() error {
 	if Server == nil {
-		return errors.New("服务未启动")
+		return exception.New("服务未启动")
 	}
 	return Server.Shutdown(context.Background())
 }

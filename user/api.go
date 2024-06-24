@@ -32,9 +32,14 @@ func userMe(ctx *gin.Context) {
 	}
 
 	var user User
-	err = _table.Get(oid, &user)
+	has, err := _table.Get(oid, &user)
 	if err != nil {
 		api.Error(ctx, err)
+		return
+	}
+	if !has {
+		//todo 删除session
+		api.Fail(ctx, "找不到信息")
 		return
 	}
 	api.OK(ctx, &user)
