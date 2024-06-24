@@ -56,10 +56,8 @@ func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet)
 }
 
 func (h *IncomingHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
-	//todo 只允许发送属性事件
-	//cl.WritePacket(nil)
-
-	return true
+	//只允许发送属性事件
+	return write
 }
 
 func (h *IncomingHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
