@@ -1,27 +1,27 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/god-jason/bucket/log"
+	"fmt"
+	"github.com/god-jason/bucket/db"
 )
 
-type A struct {
-	string
-	B int
-}
-
-type C struct {
-	A A
-	C int
-}
-
 func main() {
-	v := &C{
-		A: A{string: "213", B: 1},
-		C: 2,
+
+	a := map[string]any{
+		"_id": "123456789012345678901234",
+		"abc": []map[string]any{{
+			"_id": "123456789012345678901234",
+		}},
 	}
 
-	vv, _ := json.Marshal(v)
+	fmt.Println(a)
 
-	log.Println(v, string(vv))
+	db.ParseDocumentObjectId(a)
+
+	fmt.Println(a)
+
+	db.StringifyDocumentObjectId(a)
+
+	fmt.Println(a)
+
 }

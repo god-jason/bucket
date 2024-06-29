@@ -33,7 +33,7 @@ func ParseDocumentObjectId(doc any) {
 	case map[string]any:
 		for k, v := range val {
 			if strings.HasSuffix(k, "_id") {
-				vv, err := ParseObjectId(v)
+				vv, err := ParseObjectId(v) //todo 检查数组
 				if err == nil {
 					val[k] = vv
 				}
@@ -42,6 +42,10 @@ func ParseDocumentObjectId(doc any) {
 			ParseDocumentObjectId(v)
 		}
 	case []any: //todo is slice,  reflect.TypeOf(i).Kind()==reflect.Slice
+		for _, v := range val {
+			ParseDocumentObjectId(v)
+		}
+	case []map[string]any: //todo is slice,  reflect.TypeOf(i).Kind()==reflect.Slice
 		for _, v := range val {
 			ParseDocumentObjectId(v)
 		}
@@ -62,6 +66,10 @@ func StringifyDocumentObjectId(doc any) {
 			StringifyDocumentObjectId(v)
 		}
 	case []any:
+		for _, v := range val {
+			StringifyDocumentObjectId(v)
+		}
+	case []map[string]any:
 		for _, v := range val {
 			StringifyDocumentObjectId(v)
 		}
