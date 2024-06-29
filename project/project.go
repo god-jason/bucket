@@ -5,13 +5,12 @@ import (
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Project struct {
-	Id       primitive.ObjectID `json:"_id" bson:"_id"`
-	Name     string             `json:"name"`
-	Disabled bool               `json:"disabled"`
+	Id       string `json:"_id" bson:"_id"`
+	Name     string `json:"name"`
+	Disabled bool   `json:"disabled"`
 
 	running bool
 

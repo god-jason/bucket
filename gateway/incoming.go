@@ -2,8 +2,6 @@ package gateway
 
 import (
 	"bytes"
-	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/device"
 	"github.com/god-jason/bucket/pool"
 	"github.com/mochi-mqtt/server/v2"
@@ -30,14 +28,11 @@ func (h *IncomingHook) Provides(b byte) bool {
 func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	//todo 如果支持匿名，则直接true
 
-	id, err := db.ParseObjectId(pk.Connect.ClientIdentifier)
-	if err != nil {
-		return false
-	}
+	id := pk.Connect.ClientIdentifier
 
 	//检查用户名密码
 	var gw Gateway
-	has, err := db.FindById(base.BucketGateway, id, &gw)
+	has, err := _table.Get(id, &gw)
 	if err != nil {
 		return false
 	}

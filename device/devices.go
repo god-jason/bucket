@@ -15,7 +15,7 @@ func Get(id string) *Device {
 }
 
 func From(v *Device) (err error) {
-	tt := devices.LoadAndStore(v.Id.Hex(), v)
+	tt := devices.LoadAndStore(v.Id, v)
 	if tt != nil {
 		_ = tt.Close()
 	}

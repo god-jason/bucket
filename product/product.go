@@ -1,7 +1,5 @@
 package product
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
-
 // Aggregator 聚合器
 type Aggregator struct {
 	//Table  string        //默认 bucket.aggregate
@@ -37,10 +35,10 @@ type Alarm struct {
 }
 
 type Product struct {
-	Id         primitive.ObjectID `json:"_id,omitempty"`
-	Name       string             `json:"name,omitempty"` //名称
-	Type       string             `json:"type,omitempty"` //泛类型，比如：电表，水表
-	Properties []*Property        `json:"properties,omitempty"`
+	Id         string      `json:"_id,omitempty"`
+	Name       string      `json:"name,omitempty"` //名称
+	Type       string      `json:"type,omitempty"` //泛类型，比如：电表，水表
+	Properties []*Property `json:"properties,omitempty"`
 
 	properties map[string]*Property
 }

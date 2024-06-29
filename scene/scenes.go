@@ -15,7 +15,7 @@ func Get(id string) *Scene {
 }
 
 func From(t *Scene) (err error) {
-	tt := scenes.LoadAndStore(t.Id.Hex(), t)
+	tt := scenes.LoadAndStore(t.Id, t)
 	if tt != nil {
 		_ = tt.Close()
 	}

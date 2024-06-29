@@ -15,7 +15,7 @@ func Get(id string) *Validator {
 }
 
 func From(v *Validator) (err error) {
-	tt := validators.LoadAndStore(v.Id.Hex(), v)
+	tt := validators.LoadAndStore(v.Id, v)
 	if tt != nil {
 		_ = tt.Close()
 	}

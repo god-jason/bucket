@@ -26,9 +26,10 @@ func Open() error {
 	password := config.GetString(MODULE, "password")
 	if auth != "" && username != "" && password != "" {
 		opts.SetAuth(options.Credential{
-			AuthSource: auth,
-			Username:   username,
-			Password:   password,
+			AuthMechanism: "SCRAM-SHA-1",
+			AuthSource:    auth,
+			Username:      username,
+			Password:      password,
 		})
 	}
 

@@ -7,7 +7,6 @@ import (
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
@@ -17,11 +16,11 @@ type Context struct {
 }
 
 type Validator struct {
-	Id        primitive.ObjectID `json:"_id" bson:"_id"`
-	ProjectId primitive.ObjectID `json:"project_id" bson:"project_id"`
-	SpaceId   primitive.ObjectID `json:"space_id" bson:"space_id"`
-	ProductId primitive.ObjectID `json:"product_id" bson:"product_id"`
-	DeviceId  primitive.ObjectID `json:"device_id" bson:"device_id"`
+	Id        string `json:"_id" bson:"_id"`
+	ProjectId string `json:"project_id" bson:"project_id"`
+	SpaceId   string `json:"space_id" bson:"space_id"`
+	ProductId string `json:"product_id" bson:"product_id"`
+	DeviceId  string `json:"device_id" bson:"device_id"`
 
 	Condition //直接嵌入条件
 
@@ -41,21 +40,21 @@ type Validator struct {
 }
 
 func (v *Validator) Open() error {
-	if !v.DeviceId.IsZero() {
-		dev := device.Get(v.DeviceId.Hex())
+	if v.DeviceId != "" {
+		dev := device.Get(v.DeviceId)
 		if dev == nil {
 			return exception.New("找不到设备")
 		}
 		dev.WatchValues(v)
-	} else if !v.ProductId.IsZero() {
-		if !v.SpaceId.IsZero() {
-			spc := space.Get(v.SpaceId.Hex())
+	} else if v.ProductId != "" {
+		if v.SpaceId != "" {
+			spc := space.Get(v.SpaceId)
 			if spc == nil {
 				return exception.New("找不到空间")
 			}
 			spc.WatchValues(v)
-		} else if !v.ProjectId.IsZero() {
-			prj := project.Get(v.ProjectId.Hex())
+		} else if v.ProjectId != "" {
+			prj := project.Get(v.ProjectId)
 			if prj == nil {
 				return exception.New("找不到项目")
 			}
@@ -73,22 +72,22 @@ func (v *Validator) Open() error {
 func (v *Validator) Close() error {
 	v.contexts.Clear()
 
-	if !v.DeviceId.IsZero() {
-		dev := device.Get(v.DeviceId.Hex())
+	if v.DeviceId != "" {
+		dev := device.Get(v.DeviceId)
 		if dev != nil {
 			dev.UnWatchValues(v)
 		}
 	}
 
-	if !v.SpaceId.IsZero() {
-		spc := space.Get(v.SpaceId.Hex())
+	if v.SpaceId != "" {
+		spc := space.Get(v.SpaceId)
 		if spc != nil {
 			spc.UnWatchValues(v)
 		}
 	}
 
-	if !v.ProjectId.IsZero() {
-		prj := project.Get(v.ProjectId.Hex())
+	if v.ProjectId != "" {
+		prj := project.Get(v.ProjectId)
 		if prj != nil {
 			prj.UnWatchValues(v)
 		}
@@ -100,13 +99,13 @@ func (v *Validator) Close() error {
 }
 
 func (v *Validator) OnValuesChange(product, device string, values map[string]any) {
-	if v.DeviceId.IsZero() {
-		if v.ProductId.Hex() != product {
+	if v.DeviceId != "" {
+		if v.ProductId != product {
 			//不是当前产品
 			return
 		}
 	} else {
-		if v.DeviceId.Hex() != device {
+		if v.DeviceId != device {
 			//不是当前设备
 			return
 		}

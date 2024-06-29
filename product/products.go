@@ -14,7 +14,7 @@ func Get(id string) *Product {
 }
 
 func From(v *Product) (err error) {
-	products.Store(v.Id.Hex(), v)
+	products.Store(v.Id, v)
 	return nil
 }
 

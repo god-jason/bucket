@@ -10,21 +10,20 @@ import (
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
 	"github.com/robfig/cron/v3"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"strconv"
 	"strings"
 )
 
 // Timer 定时场景
 type Timer struct {
-	Id        primitive.ObjectID `json:"_id" bson:"_id"`
-	ProjectId primitive.ObjectID `json:"project_id" bson:"project_id"`
-	SpaceId   primitive.ObjectID `json:"space_id" bson:"space_id"`
-	Name      string             `json:"name"`
-	Clock     int                `json:"clock"`   //启动时间 每天的分钟 1440
-	Weekday   []int              `json:"weekday"` //0 1 2 3 4 5 6
-	Actions   []*base.Action     `json:"actions"` //动作
-	Disabled  bool               `json:"disabled"`
+	Id        string         `json:"_id" bson:"_id"`
+	ProjectId string         `json:"project_id" bson:"project_id"`
+	SpaceId   string         `json:"space_id" bson:"space_id"`
+	Name      string         `json:"name"`
+	Clock     int            `json:"clock"`   //启动时间 每天的分钟 1440
+	Weekday   []int          `json:"weekday"` //0 1 2 3 4 5 6
+	Actions   []*base.Action `json:"actions"` //动作
+	Disabled  bool           `json:"disabled"`
 
 	deviceContainer base.DeviceContainer
 	entry           cron.EntryID
@@ -32,15 +31,15 @@ type Timer struct {
 
 func (s *Timer) Open() (err error) {
 
-	if !s.SpaceId.IsZero() {
-		spc := space.Get(s.SpaceId.Hex())
+	if s.SpaceId != "" {
+		spc := space.Get(s.SpaceId)
 		if spc != nil {
 			s.deviceContainer = spc
 		} else {
 			return exception.New("找不到空间")
 		}
-	} else if !s.ProjectId.IsZero() {
-		prj := project.Get(s.ProjectId.Hex())
+	} else if s.ProjectId != "" {
+		prj := project.Get(s.ProjectId)
 		if prj != nil {
 			s.deviceContainer = prj
 		} else {
@@ -92,11 +91,11 @@ func (s *Timer) execute(id string, name string, params map[string]any) {
 
 func (s *Timer) ExecuteIgnoreError() {
 	for _, a := range s.Actions {
-		if !a.DeviceId.IsZero() {
-			s.execute(a.DeviceId.Hex(), a.Name, a.Parameters)
-		} else if !a.ProductId.IsZero() {
+		if a.DeviceId != "" {
+			s.execute(a.DeviceId, a.Name, a.Parameters)
+		} else if a.ProductId != "" {
 			if s.deviceContainer != nil {
-				ids, err := s.deviceContainer.Devices(a.ProductId.Hex())
+				ids, err := s.deviceContainer.Devices(a.ProductId)
 				if err != nil {
 					log.Error(err)
 					continue
@@ -117,8 +116,8 @@ func (s *Timer) ExecuteIgnoreError() {
 
 func (s *Timer) Execute() error {
 	for _, a := range s.Actions {
-		if !a.DeviceId.IsZero() {
-			dev := device.Get(a.DeviceId.Hex())
+		if a.DeviceId != "" {
+			dev := device.Get(a.DeviceId)
 			if dev != nil {
 				_, err := dev.Action(a.Name, a.Parameters)
 				if err != nil {
@@ -127,9 +126,9 @@ func (s *Timer) Execute() error {
 			} else {
 				return exception.New("设备找不到")
 			}
-		} else if !a.ProductId.IsZero() {
+		} else if a.ProductId != "" {
 			if s.deviceContainer != nil {
-				ids, err := s.deviceContainer.Devices(a.ProductId.Hex())
+				ids, err := s.deviceContainer.Devices(a.ProductId)
 				if err != nil {
 					return err
 				}

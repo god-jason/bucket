@@ -15,7 +15,7 @@ func Get(id string) *Timer {
 }
 
 func From(t *Timer) (err error) {
-	tt := timers.LoadAndStore(t.Id.Hex(), t)
+	tt := timers.LoadAndStore(t.Id, t)
 	if tt != nil {
 		_ = tt.Close()
 	}

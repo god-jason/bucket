@@ -15,7 +15,7 @@ func Get(id string) *Project {
 }
 
 func From(t *Project) (err error) {
-	tt := projects.LoadAndStore(t.Id.Hex(), t)
+	tt := projects.LoadAndStore(t.Id, t)
 	if tt != nil {
 		_ = tt.Close()
 	}

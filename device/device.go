@@ -10,7 +10,6 @@ import (
 	"github.com/god-jason/bucket/space"
 	"github.com/mochi-mqtt/server/v2"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
@@ -20,12 +19,12 @@ type Aggregator struct {
 }
 
 type Device struct {
-	Id        primitive.ObjectID `json:"_id" bson:"_id"`
-	ProductId primitive.ObjectID `json:"product_id" bson:"product_id"`
-	ProjectId primitive.ObjectID `json:"project_id,omitempty" bson:"project_id"`
-	SpaceId   primitive.ObjectID `json:"space_id,omitempty" bson:"space_id"`
-	Name      string             `json:"name"`
-	Disabled  bool               `json:"disabled"`
+	Id        string `json:"_id" bson:"_id"`
+	ProductId string `json:"product_id" bson:"product_id"`
+	ProjectId string `json:"project_id,omitempty" bson:"project_id"`
+	SpaceId   string `json:"space_id,omitempty" bson:"space_id"`
+	Name      string `json:"name"`
+	Disabled  bool   `json:"disabled"`
 
 	running bool
 
@@ -50,9 +49,9 @@ type Device struct {
 
 func (d *Device) Open() error {
 
-	d.product = product.Get(d.ProductId.Hex())
+	d.product = product.Get(d.ProductId)
 	if d.product == nil {
-		return exception.New("找不到产品" + d.ProductId.Hex())
+		return exception.New("找不到产品" + d.ProductId)
 	}
 
 	d.values = make(map[string]any)
@@ -78,16 +77,16 @@ func (d *Device) Open() error {
 	d.running = true
 
 	//找到项目，空间，主动汇报数据
-	if !d.ProjectId.IsZero() {
-		prj := project.Get(d.ProjectId.Hex())
+	if d.ProjectId != "" {
+		prj := project.Get(d.ProjectId)
 		if prj != nil {
 			d.WatchValues(prj)
 		} else {
 			//return errors.New("找不到项目")
 		}
 	}
-	if !d.SpaceId.IsZero() {
-		spc := space.Get(d.SpaceId.Hex())
+	if d.SpaceId != "" {
+		spc := space.Get(d.SpaceId)
 		if spc != nil {
 			d.WatchValues(spc)
 		} else {
@@ -175,7 +174,7 @@ func (d *Device) PatchValues(values map[string]any) {
 	}
 
 	//监听变化
-	pid, id := d.ProductId.Hex(), d.Id.Hex()
+	pid, id := d.ProductId, d.Id
 	for w, _ := range d.valuesWatchers {
 		w.OnValuesChange(pid, id, d.values)
 	}
@@ -203,7 +202,7 @@ func (d *Device) WriteValues(values map[string]any) error {
 
 	//向网关发送写指令
 	if d.gatewayClient != nil {
-		return publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/property", values)
+		return publishDirectly(d.gatewayClient, "down/device/"+d.Id+"/property", values)
 	}
 
 	return nil
@@ -211,13 +210,13 @@ func (d *Device) WriteValues(values map[string]any) error {
 
 func (d *Device) Action(name string, values map[string]any) (map[string]any, error) {
 
-	act := action.Action{
-		ProductId:  d.ProductId,
-		DeviceId:   d.Id,
-		ProjectId:  d.ProjectId,
-		SpaceId:    d.SpaceId,
-		Name:       name,
-		Parameters: values,
+	act := map[string]any{
+		"product_id": d.ProductId,
+		"device_id":  d.Id,
+		"project_id": d.ProjectId,
+		"space_id":   d.SpaceId,
+		"name":       name,
+		"parameters": values,
 	}
 
 	id, err := action.Table().Insert(&act)
@@ -230,7 +229,7 @@ func (d *Device) Action(name string, values map[string]any) (map[string]any, err
 	//向网关发送写指令
 	if d.gatewayClient != nil && !d.gatewayClient.Closed() {
 		payload := PayloadActionDown{Id: id, Name: name, Parameters: values}
-		err := publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/name", &payload)
+		err := publishDirectly(d.gatewayClient, "down/device/"+d.Id+"/name", &payload)
 		if err != nil {
 			return nil, err
 		}

@@ -15,7 +15,7 @@ func Get(id string) *Space {
 }
 
 func From(t *Space) (err error) {
-	tt := spaces.LoadAndStore(t.Id.Hex(), t)
+	tt := spaces.LoadAndStore(t.Id, t)
 	if tt != nil {
 		_ = tt.Close()
 	}
