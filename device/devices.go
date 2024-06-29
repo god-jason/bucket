@@ -6,7 +6,6 @@ import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var devices lib.Map[Device]
@@ -26,7 +25,7 @@ func From(v *Device) (err error) {
 	return v.Open()
 }
 
-func Load(id primitive.ObjectID) error {
+func Load(id string) error {
 	var device Device
 	has, err := _table.Get(id, &device)
 	if err != nil {
@@ -38,24 +37,24 @@ func Load(id primitive.ObjectID) error {
 	return From(&device)
 }
 
-func Unload(id primitive.ObjectID) error {
-	t := devices.LoadAndDelete(id.Hex())
+func Unload(id string) error {
+	t := devices.LoadAndDelete(id)
 	if t != nil {
 		return t.Close()
 	}
 	return nil
 }
 
-func Open(id primitive.ObjectID) error {
-	dev := devices.Load(id.Hex())
+func Open(id string) error {
+	dev := devices.Load(id)
 	if dev == nil {
 		return exception.New("找不到设备")
 	}
 	return dev.Open()
 }
 
-func Close(id primitive.ObjectID) error {
-	dev := devices.Load(id.Hex())
+func Close(id string) error {
+	dev := devices.Load(id)
 	if dev == nil {
 		return exception.New("找不到设备")
 	}

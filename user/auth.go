@@ -30,7 +30,7 @@ func auth(ctx *gin.Context) {
 	}
 
 	var obj Password
-	has, err := _passwordTable.Get(user.Id, &obj)
+	has, err := _passwordTable.Get(user.Id.Hex(), &obj)
 	if err != nil {
 		api.Error(ctx, err)
 		return

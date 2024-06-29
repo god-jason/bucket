@@ -12,12 +12,6 @@ func ApiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	id, err := db.ParseObjectId(ctx.Param("id"))
-	if err != nil {
-		Error(ctx, err)
-		return
-	}
-
 	var update db.Document
 	err = ctx.ShouldBindJSON(&update)
 	if err != nil {
@@ -25,9 +19,7 @@ func ApiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	db.ConvertObjectId(update)
-
-	err = table.Update(id, update)
+	err = table.Update(ctx.Param("id"), update)
 	if err != nil {
 		Error(ctx, err)
 		return

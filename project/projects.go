@@ -6,7 +6,6 @@ import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var projects lib.Map[Project]
@@ -27,7 +26,7 @@ func From(t *Project) (err error) {
 	return t.Open()
 }
 
-func Load(id primitive.ObjectID) error {
+func Load(id string) error {
 	var project Project
 	has, err := _table.Get(id, &project)
 	if err != nil {
@@ -39,8 +38,8 @@ func Load(id primitive.ObjectID) error {
 	return From(&project)
 }
 
-func Unload(id primitive.ObjectID) error {
-	t := projects.LoadAndDelete(id.Hex())
+func Unload(id string) error {
+	t := projects.LoadAndDelete(id)
 	if t != nil {
 		return t.Close()
 	}

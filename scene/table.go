@@ -4,7 +4,6 @@ import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var _table = table.Table{
@@ -34,13 +33,13 @@ var _table = table.Table{
 }
 
 var _hook = table.Hook{
-	AfterInsert: func(id primitive.ObjectID, doc any) error {
+	AfterInsert: func(id string, doc any) error {
 		return Load(id)
 	},
-	AfterUpdate: func(id primitive.ObjectID, update any, base db.Document) error {
+	AfterUpdate: func(id string, update any, base db.Document) error {
 		return Load(id)
 	},
-	AfterDelete: func(id primitive.ObjectID, doc db.Document) error {
+	AfterDelete: func(id string, doc db.Document) error {
 		return Unload(id)
 	},
 }

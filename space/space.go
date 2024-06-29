@@ -2,8 +2,8 @@ package space
 
 import (
 	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/pkg/exception"
+	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -31,17 +31,18 @@ func (s *Space) Close() error {
 	return nil
 }
 
-func (s *Space) Devices(productId primitive.ObjectID) (ids []primitive.ObjectID, err error) {
+func (s *Space) Devices(productId string) (ids []string, err error) {
 	if !s.running {
 		return nil, exception.New("空间已经关闭")
 	}
-	return db.DistinctId(base.BucketDevice, bson.D{
+	deviceTable, _ := table.Get(base.BucketDevice)
+	return deviceTable.DistinctId(bson.D{
 		{"space_id", s.Id},
 		{"product_id", productId},
 	})
 }
 
-func (s *Space) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
+func (s *Space) OnValuesChange(product, device string, values map[string]any) {
 	for w, _ := range s.valuesWatchers {
 		w.OnValuesChange(product, device, values)
 	}

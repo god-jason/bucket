@@ -1,15 +1,11 @@
 package base
 
-import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
-)
-
 type ValuesWatcher interface {
-	OnValuesChange(product, device primitive.ObjectID, values map[string]any) //监听属性变化
+	OnValuesChange(product, device string, values map[string]any) //监听属性变化
 }
 
 //type ProductValuesWatcher interface {
-//	OnProductValuesChange(product, device primitive.ObjectID, values map[string]any) //监听产品属性变化
+//	OnProductValuesChange(product, device string, values map[string]any) //监听产品属性变化
 //}
 
 //type Watcher interface {
@@ -18,5 +14,5 @@ type ValuesWatcher interface {
 //}
 
 //type ValuesWatcher interface {
-//	OnProjectValuesChange(device primitive.ObjectID, values map[string]any) //监听属性变化
+//	OnProjectValuesChange(device string, values map[string]any) //监听属性变化
 //}

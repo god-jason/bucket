@@ -48,7 +48,7 @@ func ApiSearch(ctx *gin.Context) {
 		pipeline = append(pipeline, limit)
 	}
 
-	var fields map[string]int
+	fields := map[string]int{}
 	if len(body.Fields) > 0 {
 		for _, f := range body.Fields {
 			fields[f] = 1
@@ -57,7 +57,7 @@ func ApiSearch(ctx *gin.Context) {
 
 	//寻找外键
 	for _, f := range table.Fields {
-		if fields != nil {
+		if len(fields) > 0 {
 			//没有查询的字段，不找外键
 			if _, ok := fields[f.Name]; !ok {
 				continue
@@ -85,7 +85,7 @@ func ApiSearch(ctx *gin.Context) {
 
 			pipeline = append(pipeline, lookup, unwind, set)
 
-			if fields != nil {
+			if len(fields) > 0 {
 				fields[f.Foreign.As] = 1
 			}
 		}

@@ -2,20 +2,13 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func Operator(hook func(id primitive.ObjectID) error) gin.HandlerFunc {
+func Operator(hook func(id string) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
-		oid, err := db.ParseObjectId(id)
-		if err != nil {
-			Error(ctx, err)
-			return
-		}
 
-		err = hook(oid)
+		err := hook(id)
 		if err != nil {
 			Error(ctx, err)
 			return

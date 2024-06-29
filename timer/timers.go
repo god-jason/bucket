@@ -6,7 +6,6 @@ import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var timers lib.Map[Timer]
@@ -23,7 +22,7 @@ func From(t *Timer) (err error) {
 	return t.Open()
 }
 
-func Load(id primitive.ObjectID) error {
+func Load(id string) error {
 	var timer Timer
 	has, err := _table.Get(id, &timer)
 	if err != nil {
@@ -35,8 +34,8 @@ func Load(id primitive.ObjectID) error {
 	return From(&timer)
 }
 
-func Unload(id primitive.ObjectID) error {
-	t := timers.LoadAndDelete(id.Hex())
+func Unload(id string) error {
+	t := timers.LoadAndDelete(id)
 	if t != nil {
 		return t.Close()
 	}
@@ -55,8 +54,8 @@ func LoadAll() error {
 	})
 }
 
-func Execute(id primitive.ObjectID) error {
-	t := timers.Load(id.Hex())
+func Execute(id string) error {
+	t := timers.Load(id)
 	if t != nil {
 		return t.Execute()
 	}

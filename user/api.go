@@ -3,7 +3,6 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
-	"github.com/god-jason/bucket/db"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -25,14 +24,9 @@ func init() {
 
 func userMe(ctx *gin.Context) {
 	id := ctx.GetString("user")
-	oid, err := db.ParseObjectId(id)
-	if err != nil {
-		api.Error(ctx, err)
-		return
-	}
 
 	var user User
-	has, err := _table.Get(oid, &user)
+	has, err := _table.Get(id, &user)
 	if err != nil {
 		api.Error(ctx, err)
 		return
@@ -47,16 +41,11 @@ func userMe(ctx *gin.Context) {
 
 func userPassword(ctx *gin.Context) {
 	id := ctx.GetString("user")
-	oid, err := db.ParseObjectId(id)
-	if err != nil {
-		api.Error(ctx, err)
-		return
-	}
 
 	pwd := ctx.PostForm("password")
 	//p.Password = md5hash(pwd)
 
-	err = _passwordTable.Update(oid, bson.M{"password": pwd})
+	err := _passwordTable.Update(id, bson.M{"password": pwd})
 	if err != nil {
 		api.Error(ctx, err)
 		return

@@ -12,14 +12,8 @@ func ApiDetail(ctx *gin.Context) {
 		return
 	}
 
-	id, err := db.ParseObjectId(ctx.Param("id"))
-	if err != nil {
-		Error(ctx, err)
-		return
-	}
-
 	var doc db.Document
-	has, err := table.Get(id, &doc)
+	has, err := table.Get(ctx.Param("id"), &doc)
 	if err != nil {
 		Error(ctx, err)
 		return

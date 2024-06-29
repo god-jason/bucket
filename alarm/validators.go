@@ -6,7 +6,6 @@ import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var validators lib.Map[Validator]
@@ -23,7 +22,7 @@ func From(v *Validator) (err error) {
 	return v.Open()
 }
 
-func Load(id primitive.ObjectID) error {
+func Load(id string) error {
 	var validator Validator
 	has, err := _validatorTable.Get(id, &validator)
 	if err != nil {
@@ -35,8 +34,8 @@ func Load(id primitive.ObjectID) error {
 	return From(&validator)
 }
 
-func Unload(id primitive.ObjectID) error {
-	t := validators.LoadAndDelete(id.Hex())
+func Unload(id string) error {
+	t := validators.LoadAndDelete(id)
 	if t != nil {
 		return t.Close()
 	}

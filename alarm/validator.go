@@ -99,14 +99,14 @@ func (v *Validator) Close() error {
 	return nil
 }
 
-func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
+func (v *Validator) OnValuesChange(product, device string, values map[string]any) {
 	if v.DeviceId.IsZero() {
-		if v.ProductId.Hex() != product.Hex() {
+		if v.ProductId.Hex() != product {
 			//不是当前产品
 			return
 		}
 	} else {
-		if v.DeviceId.Hex() != device.Hex() {
+		if v.DeviceId.Hex() != device {
 			//不是当前设备
 			return
 		}
@@ -119,10 +119,10 @@ func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values ma
 	}
 
 	//取上下文件
-	ctx := v.contexts.Load(device.Hex())
+	ctx := v.contexts.Load(device)
 	if ctx == nil {
 		ctx = &Context{}
-		v.contexts.Store(product.Hex(), ctx)
+		v.contexts.Store(product, ctx)
 	}
 
 	//条件为 假，则重置
@@ -166,16 +166,15 @@ func (v *Validator) OnValuesChange(product, device primitive.ObjectID, values ma
 	ctx.times++
 
 	//产生报警
-	alarm := &Alarm{
-		ProjectId: v.ProjectId,
-		SpaceId:   v.SpaceId,
-		ProductId: product, //v.ProductId,
-		DeviceId:  device,  //v.DeviceId,支持同产品
-		Level:     v.Level,
-		Type:      v.Type,
-		Title:     v.Title,
-		Message:   v.Message,
-		Created:   time.Now(),
+	alarm := map[string]any{
+		"project_id": v.ProjectId,
+		"space_id":   v.SpaceId,
+		"product_id": product, //v.ProductId,
+		"device_id":  device,  //v.DeviceId,支持同产品
+		"level":      v.Level,
+		"type":       v.Type,
+		"title":      v.Title,
+		"message":    v.Message,
 	}
 
 	_, err = _alarmTable.Insert(alarm)

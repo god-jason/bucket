@@ -17,7 +17,8 @@ func Open() error {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().
 		ApplyURI(config.GetString(MODULE, "url")).
-		SetServerAPIOptions(serverAPI)
+		SetServerAPIOptions(serverAPI).
+		SetBSONOptions(&options.BSONOptions{UseJSONStructTags: true})
 
 	//鉴权
 	auth := config.GetString(MODULE, "auth")

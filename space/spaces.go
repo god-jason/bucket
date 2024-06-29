@@ -6,7 +6,6 @@ import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var spaces lib.Map[Space]
@@ -23,7 +22,7 @@ func From(t *Space) (err error) {
 	return t.Open()
 }
 
-func Load(id primitive.ObjectID) error {
+func Load(id string) error {
 	var space Space
 	has, err := _table.Get(id, &space)
 	if err != nil {
@@ -35,8 +34,8 @@ func Load(id primitive.ObjectID) error {
 	return From(&space)
 }
 
-func Unload(id primitive.ObjectID) error {
-	t := spaces.LoadAndDelete(id.Hex())
+func Unload(id string) error {
+	t := spaces.LoadAndDelete(id)
 	if t != nil {
 		return t.Close()
 	}

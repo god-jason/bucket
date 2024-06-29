@@ -19,8 +19,6 @@ func ApiCreate(ctx *gin.Context) {
 		return
 	}
 
-	db.ConvertObjectId(doc)
-
 	id, err := table.Insert(doc)
 	if err != nil {
 		Error(ctx, err)

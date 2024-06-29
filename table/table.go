@@ -8,7 +8,6 @@ import (
 	"github.com/god-jason/bucket/pkg/javascript"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
@@ -52,20 +51,22 @@ func (t *Table) init() (err error) {
 }
 
 func (t *Table) Aggregate(pipeline any, results any) error {
+	db.ParseDocumentObjectId(pipeline)
 	return db.Aggregate(t.Name, pipeline, results)
 }
 
 func (t *Table) AggregateDocument(pipeline any, results *[]db.Document) error {
+	db.ParseDocumentObjectId(pipeline)
 	return db.Aggregate(t.Name, pipeline, results)
 }
 
-func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
+func (t *Table) Insert(doc any) (id string, err error) {
 
 	//检查
 	if t.schema != nil {
 		err = t.schema.Validate(doc)
 		if err != nil {
-			return primitive.NilObjectID, exception.Wrap(err)
+			return "", exception.Wrap(err)
 		}
 	}
 
@@ -73,7 +74,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 	if t.Hook != nil && t.Hook.BeforeInsert != nil {
 		err := t.Hook.BeforeInsert(&doc)
 		if err != nil {
-			return primitive.NilObjectID, exception.Wrap(err)
+			return "", exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["before.insert"]; ok {
@@ -81,7 +82,7 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		_ = vm.Set("object", doc)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
-			return primitive.NilObjectID, exception.Wrap(err)
+			return "", exception.Wrap(err)
 		}
 	}
 
@@ -95,21 +96,22 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 			}
 		}
 	}
+	//todo 用反射检查 struct
 
 	ret, err := db.InsertOne(t.Name, doc)
 	if err != nil {
-		return primitive.NilObjectID, err
+		return "", err
 	}
 	if d, ok := doc.(map[string]any); ok {
-		d["_id"] = ret
+		d["_id"] = ret.Hex()
 	}
 	//struct 类型用 反射
 
 	//after insert
 	if t.Hook != nil && t.Hook.AfterInsert != nil {
-		err := t.Hook.AfterInsert(ret, &doc)
+		err := t.Hook.AfterInsert(ret.Hex(), &doc)
 		if err != nil {
-			return primitive.NilObjectID, exception.Wrap(err)
+			return "", exception.Wrap(err)
 		}
 	}
 	if hook, ok := t.scripts["after.insert"]; ok {
@@ -118,24 +120,32 @@ func (t *Table) Insert(doc any) (id primitive.ObjectID, err error) {
 		_ = vm.Set("object", doc)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
-			return primitive.NilObjectID, exception.Wrap(err)
+			return "", exception.Wrap(err)
 		}
 	}
 
-	return ret, nil
+	return ret.Hex(), nil
 }
 
-func (t *Table) Import(docs []any) (ids []primitive.ObjectID, err error) {
+func (t *Table) Import(docs []any) (ids []string, err error) {
 
 	//没有hook，则直接InsertMany
 	if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
 		if _, ok := t.scripts["before.insert"]; !ok {
 			if _, ok := t.scripts["after.insert"]; !ok {
-				return db.InsertMany(t.Name, docs)
+				oids, err := db.InsertMany(t.Name, docs)
+				if err != nil {
+					return nil, err
+				}
+				for _, id := range oids {
+					ids = append(ids, id.Hex())
+				}
+				return ids, nil
 			}
 		}
 	}
 
+	//依次插入
 	for _, doc := range docs {
 		id, err := t.Insert(doc)
 		if err != nil {
@@ -146,7 +156,7 @@ func (t *Table) Import(docs []any) (ids []primitive.ObjectID, err error) {
 	return ids, nil
 }
 
-func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, err error) {
+func (t *Table) ImportDocument(docs []db.Document) (ids []string, err error) {
 
 	//没有hook，则直接InsertMany
 	if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
@@ -156,11 +166,19 @@ func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, er
 				for _, doc := range docs {
 					ds = append(ds, doc)
 				}
-				return db.InsertMany(t.Name, ds)
+				oids, err := db.InsertMany(t.Name, ds)
+				if err != nil {
+					return nil, err
+				}
+				for _, id := range oids {
+					ids = append(ids, id.Hex())
+				}
+				return ids, nil
 			}
 		}
 	}
 
+	//依次插入
 	for _, doc := range docs {
 		id, err := t.Insert(doc)
 		if err != nil {
@@ -171,7 +189,7 @@ func (t *Table) ImportDocument(docs []db.Document) (ids []primitive.ObjectID, er
 	return ids, nil
 }
 
-func (t *Table) Delete(id primitive.ObjectID) error {
+func (t *Table) Delete(id string) error {
 	//before delete
 	if t.Hook != nil && t.Hook.BeforeDelete != nil {
 		err := t.Hook.BeforeDelete(id)
@@ -188,8 +206,13 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 		}
 	}
 
+	oid, err := db.ParseObjectId(id)
+	if err != nil {
+		return err
+	}
+
 	var result db.Document
-	has, err := db.FindOneAndDelete(t.Name, bson.D{{"_id", id}}, &result)
+	has, err := db.FindOneAndDelete(t.Name, bson.D{{"_id", oid}}, &result)
 	if err != nil {
 		return err
 	}
@@ -199,6 +222,9 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 
 	//把删除保存到修改历史表
 	_, _ = db.InsertOne(t.Name+".deleted", result)
+
+	//转换_id
+	db.StringifyDocumentObjectId(result)
 
 	//after delete
 	if t.Hook != nil && t.Hook.AfterDelete != nil {
@@ -220,7 +246,7 @@ func (t *Table) Delete(id primitive.ObjectID) error {
 	return err
 }
 
-func (t *Table) Update(id primitive.ObjectID, update any) error {
+func (t *Table) Update(id string, update any) error {
 
 	//before update
 	if t.Hook != nil && t.Hook.BeforeUpdate != nil {
@@ -250,8 +276,15 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 		}
 	}
 
+	//转换_id
+	oid, err := db.ParseObjectId(id)
+	if err != nil {
+		return err
+	}
+	db.ParseDocumentObjectId(update)
+
 	var result db.Document
-	has, err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", id}}, bson.D{{"$set", update}}, &result)
+	has, err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &result)
 	if err != nil {
 		return err
 	}
@@ -260,7 +293,11 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	}
 
 	//把差异保存到修改历史表
-	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": id, "base": result, "change": update})
+	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": oid, "base": result, "change": update})
+
+	//转换—_id
+	db.StringifyDocumentObjectId(update)
+	db.StringifyDocumentObjectId(result)
 
 	//after update
 	if t.Hook != nil && t.Hook.AfterUpdate != nil {
@@ -283,23 +320,35 @@ func (t *Table) Update(id primitive.ObjectID, update any) error {
 	return err
 }
 
-func (t *Table) Get(id primitive.ObjectID, result any) (has bool, err error) {
-	return db.FindOne(t.Name, bson.D{{"_id", id}}, result)
+func (t *Table) Get(id string, result any) (has bool, err error) {
+	oid, err := db.ParseObjectId(id)
+	if err != nil {
+		return false, err
+	}
+	return db.FindOne(t.Name, bson.D{{"_id", oid}}, result)
 }
 
-func (t *Table) GetDocument(id primitive.ObjectID, result *db.Document) (has bool, err error) {
-	return db.FindOne(t.Name, bson.D{{"_id", id}}, result)
+func (t *Table) GetDocument(id string, result *db.Document) (has bool, err error) {
+	oid, err := db.ParseObjectId(id)
+	if err != nil {
+		return false, err
+	}
+	db.StringifyDocumentObjectId(result)
+	return db.FindOne(t.Name, bson.D{{"_id", oid}}, result)
 }
 
 func (t *Table) Find(filter any, sort any, skip int64, limit int64, results any) error {
+	db.ParseDocumentObjectId(filter)
 	return db.Find(t.Name, filter, sort, skip, limit, results)
 }
 
 func (t *Table) FindDocument(filter any, sort any, skip int64, limit int64, results *[]db.Document) error {
+	db.ParseDocumentObjectId(filter)
 	return db.Find(t.Name, filter, sort, skip, limit, results)
 }
 
 func (t *Table) Count(filter any) (count int64, err error) {
+	db.ParseDocumentObjectId(filter)
 	return db.Count(t.Name, filter)
 }
 
@@ -308,9 +357,18 @@ func (t *Table) Drop() error {
 }
 
 func (t *Table) Distinct(filter any, field string) (values []any, err error) {
+	db.ParseDocumentObjectId(filter)
 	return db.Distinct(t.Name, filter, field)
 }
 
-func (t *Table) DistinctId(filter any) (values []primitive.ObjectID, err error) {
-	return db.DistinctId(t.Name, filter)
+func (t *Table) DistinctId(filter any) (values []string, err error) {
+	db.ParseDocumentObjectId(filter)
+	ids, err := db.DistinctId(t.Name, filter)
+	if err != nil {
+		return nil, err
+	}
+	for _, id := range ids {
+		values = append(values, id.Hex())
+	}
+	return values, nil
 }

@@ -96,13 +96,13 @@ func (s *Timer) ExecuteIgnoreError() {
 			s.execute(a.DeviceId.Hex(), a.Name, a.Parameters)
 		} else if !a.ProductId.IsZero() {
 			if s.deviceContainer != nil {
-				ids, err := s.deviceContainer.Devices(a.ProductId)
+				ids, err := s.deviceContainer.Devices(a.ProductId.Hex())
 				if err != nil {
 					log.Error(err)
 					continue
 				}
 				for _, d := range ids {
-					s.execute(d.Hex(), a.Name, a.Parameters)
+					s.execute(d, a.Name, a.Parameters)
 				}
 			} else {
 				log.Error("需要指定产品ID")
@@ -129,12 +129,12 @@ func (s *Timer) Execute() error {
 			}
 		} else if !a.ProductId.IsZero() {
 			if s.deviceContainer != nil {
-				ids, err := s.deviceContainer.Devices(a.ProductId)
+				ids, err := s.deviceContainer.Devices(a.ProductId.Hex())
 				if err != nil {
 					return err
 				}
 				for _, d := range ids {
-					dev := device.Get(d.Hex())
+					dev := device.Get(d)
 					if dev != nil {
 						_, err := dev.Action(a.Name, a.Parameters)
 						if err != nil {

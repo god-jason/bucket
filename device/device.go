@@ -176,8 +176,9 @@ func (d *Device) PatchValues(values map[string]any) {
 	}
 
 	//监听变化
+	pid, id := d.productId.Hex(), d.Id.Hex()
 	for w, _ := range d.valuesWatchers {
-		w.OnValuesChange(d.productId, d.Id, d.values)
+		w.OnValuesChange(pid, id, d.values)
 	}
 }
 
@@ -229,12 +230,12 @@ func (d *Device) Action(name string, values map[string]any) (map[string]any, err
 
 	//向网关发送写指令
 	if d.gatewayClient != nil && !d.gatewayClient.Closed() {
-		payload := PayloadActionDown{Id: id.Hex(), Name: name, Parameters: values}
+		payload := PayloadActionDown{Id: id, Name: name, Parameters: values}
 		err := publishDirectly(d.gatewayClient, "down/device/"+d.Id.Hex()+"/name", &payload)
 		if err != nil {
 			return nil, err
 		}
-		d.pendingActions[id.Hex()] = make(chan *PayloadActionUp)
+		d.pendingActions[id] = make(chan *PayloadActionUp)
 
 		//等待结果
 		select {

@@ -4,10 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func Create(tab *table.Table, after func(id primitive.ObjectID) error) gin.HandlerFunc {
+func Create(tab *table.Table, after func(id string) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var doc db.Document
 		err := ctx.ShouldBind(&doc)
@@ -15,9 +14,6 @@ func Create(tab *table.Table, after func(id primitive.ObjectID) error) gin.Handl
 			Error(ctx, err)
 			return
 		}
-
-		db.ConvertObjectId(doc)
-
 		id, err := tab.Insert(doc)
 		if err != nil {
 			Error(ctx, err)

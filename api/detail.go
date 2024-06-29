@@ -4,16 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func Detail(tab *table.Table, after func(id primitive.ObjectID, doc db.Document) error) gin.HandlerFunc {
+func Detail(tab *table.Table, after func(id string, doc db.Document) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, err := db.ParseObjectId(ctx.Param("id"))
-		if err != nil {
-			Error(ctx, err)
-			return
-		}
+		id := ctx.Param("id")
 
 		var doc db.Document
 		has, err := tab.Get(id, &doc)

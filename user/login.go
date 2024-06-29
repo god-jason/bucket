@@ -34,6 +34,7 @@ func login(ctx *gin.Context) {
 
 	var users []User
 	var user User
+	var userId string
 
 	err := _table.Find(bson.D{{"username", obj.Username}}, nil, 0, 1, &users)
 	if err != nil {
@@ -46,17 +47,20 @@ func login(ctx *gin.Context) {
 			user.Name = "管理员"
 			user.Admin = true
 
-			user.Id, err = _table.Insert(&user)
+			userId, err = _table.Insert(&user)
 			if err != nil {
 				api.Error(ctx, err)
 				return
 			}
+
+			user.Id, _ = db.ParseObjectId(userId)
 		} else {
 			api.Fail(ctx, "找不到用户")
 			return
 		}
 	} else {
 		user = users[0]
+		userId = user.Id.Hex()
 	}
 
 	if user.Disabled {
@@ -65,7 +69,7 @@ func login(ctx *gin.Context) {
 	}
 
 	var password Password
-	has, err := _passwordTable.Get(user.Id, &password)
+	has, err := _passwordTable.Get(userId, &password)
 	if err != nil {
 		api.Error(ctx, err)
 		return
@@ -92,7 +96,7 @@ func login(ctx *gin.Context) {
 	//_, _ = db.Engine.InsertOne(&types.UserEvent{UserId: user.id, ModEvent: types.ModEvent{Type: "登录"}})
 
 	//存入session
-	session.Set("user", user.Id)
+	session.Set("user", userId)
 	_ = session.Save()
 
 	api.OK(ctx, user)
@@ -127,22 +131,17 @@ func password(ctx *gin.Context) {
 		return
 	}
 
-	user := ctx.GetString("user")
-	oid, err := db.ParseObjectId(user)
-	if err != nil {
-		api.Error(ctx, err)
-		return
-	}
+	userId := ctx.GetString("userId")
 
 	var pwd Password
-	has, err := _passwordTable.Get(oid, &pwd)
+	has, err := _passwordTable.Get(userId, &pwd)
 	if err != nil {
 		api.Error(ctx, err)
 		return
 	}
 
 	if !has {
-		pwd.Id = oid
+		pwd.Id, _ = db.ParseObjectId(userId)
 		pwd.Password = obj.New //没有
 
 		_, err = _passwordTable.Insert(&pwd)
@@ -157,7 +156,7 @@ func password(ctx *gin.Context) {
 		}
 
 		//pwd.Password = obj.New //前端已经加密过
-		err = _passwordTable.Update(oid, bson.M{"password": pwd})
+		err = _passwordTable.Update(userId, bson.M{"password": pwd})
 		if err != nil {
 			api.Error(ctx, err)
 			return

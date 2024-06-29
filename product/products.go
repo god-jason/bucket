@@ -5,7 +5,6 @@ import (
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var products lib.Map[Product]
@@ -19,7 +18,7 @@ func From(v *Product) (err error) {
 	return nil
 }
 
-func Load(id primitive.ObjectID) error {
+func Load(id string) error {
 	var product Product
 	has, err := _table.Get(id, &product)
 	if err != nil {
@@ -31,8 +30,8 @@ func Load(id primitive.ObjectID) error {
 	return From(&product)
 }
 
-func Unload(id primitive.ObjectID) error {
-	products.Delete(id.Hex())
+func Unload(id string) error {
+	products.Delete(id)
 	return nil
 }
 

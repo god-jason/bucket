@@ -2,8 +2,8 @@ package project
 
 import (
 	"github.com/god-jason/bucket/base"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/pkg/exception"
+	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -34,17 +34,18 @@ func (p *Project) Close() error {
 	return nil
 }
 
-func (p *Project) Devices(productId primitive.ObjectID) (ids []primitive.ObjectID, err error) {
+func (p *Project) Devices(productId string) (ids []string, err error) {
 	if !p.running {
 		return nil, exception.New("项目已经关闭")
 	}
-	return db.DistinctId(base.BucketDevice, bson.D{
+	deviceTable, _ := table.Get(base.BucketDevice)
+	return deviceTable.DistinctId(bson.D{
 		{"project_id", p.Id},
 		{"product_id", productId},
 	})
 }
 
-func (p *Project) OnValuesChange(product, device primitive.ObjectID, values map[string]any) {
+func (p *Project) OnValuesChange(product, device string, values map[string]any) {
 	for w, _ := range p.valuesWatchers {
 		w.OnValuesChange(product, device, values)
 	}

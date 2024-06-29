@@ -5,11 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/table"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 )
 
-func Import(tab *table.Table, after func(ids []primitive.ObjectID) error) gin.HandlerFunc {
+func Import(tab *table.Table, after func(ids []string) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var doc []db.Document
 
@@ -47,8 +46,6 @@ func Import(tab *table.Table, after func(ids []primitive.ObjectID) error) gin.Ha
 				return
 			}
 		}
-
-		db.ConvertObjectId(doc)
 
 		ids, err := tab.ImportDocument(doc)
 		if err != nil {
