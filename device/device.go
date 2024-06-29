@@ -30,8 +30,7 @@ type Device struct {
 	running bool
 
 	//产品
-	productId primitive.ObjectID
-	product   *product.Product
+	product *product.Product
 
 	//变量
 	values map[string]any
@@ -51,9 +50,9 @@ type Device struct {
 
 func (d *Device) Open() error {
 
-	d.product = product.Get(d.productId.Hex())
+	d.product = product.Get(d.ProductId.Hex())
 	if d.product == nil {
-		return exception.New("找不到产品" + d.productId.Hex())
+		return exception.New("找不到产品" + d.ProductId.Hex())
 	}
 
 	d.values = make(map[string]any)
@@ -176,7 +175,7 @@ func (d *Device) PatchValues(values map[string]any) {
 	}
 
 	//监听变化
-	pid, id := d.productId.Hex(), d.Id.Hex()
+	pid, id := d.ProductId.Hex(), d.Id.Hex()
 	for w, _ := range d.valuesWatchers {
 		w.OnValuesChange(pid, id, d.values)
 	}
