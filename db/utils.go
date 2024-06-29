@@ -33,12 +33,15 @@ func ParseDocumentObjectId(doc any) {
 	case map[string]any:
 		for k, v := range val {
 			if strings.HasSuffix(k, "_id") {
-				val[k], _ = ParseObjectId(v)
+				vv, err := ParseObjectId(v)
+				if err == nil {
+					val[k] = vv
+				}
 				continue
 			}
 			ParseDocumentObjectId(v)
 		}
-	case []any:
+	case []any: //todo is slice,  reflect.TypeOf(i).Kind()==reflect.Slice
 		for _, v := range val {
 			ParseDocumentObjectId(v)
 		}
@@ -50,7 +53,10 @@ func StringifyDocumentObjectId(doc any) {
 	case map[string]any:
 		for k, v := range val {
 			if strings.HasSuffix(k, "_id") {
-				val[k], _ = StringifyObjectId(v)
+				vv, err := StringifyObjectId(v)
+				if err == nil {
+					val[k] = vv
+				}
 				continue
 			}
 			StringifyDocumentObjectId(v)

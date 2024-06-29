@@ -174,9 +174,8 @@ func (d *Device) PatchValues(values map[string]any) {
 	}
 
 	//监听变化
-	pid, id := d.ProductId, d.Id
 	for w, _ := range d.valuesWatchers {
-		w.OnValuesChange(pid, id, d.values)
+		w.OnValuesChange(d.ProductId, d.Id, d.values)
 	}
 }
 
