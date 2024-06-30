@@ -33,10 +33,13 @@ func ParseDocumentObjectId(doc any) {
 	case map[string]any:
 		for k, v := range val {
 			if strings.HasSuffix(k, "_id") {
-				vv, err := ParseObjectId(v) //todo 检查数组
-				if err == nil {
-					val[k] = vv
+				if vv, ok := v.(string); ok {
+					oid, err := primitive.ObjectIDFromHex(vv)
+					if err == nil {
+						val[k] = oid
+					}
 				}
+				//vv, err := ParseObjectId(v) //todo 检查数组
 				continue
 			}
 			ParseDocumentObjectId(v)
@@ -57,9 +60,8 @@ func StringifyDocumentObjectId(doc any) {
 	case map[string]any:
 		for k, v := range val {
 			if strings.HasSuffix(k, "_id") {
-				vv, err := StringifyObjectId(v)
-				if err == nil {
-					val[k] = vv
+				if vv, ok := v.(primitive.ObjectID); ok {
+					val[k] = vv.Hex()
 				}
 				continue
 			}
