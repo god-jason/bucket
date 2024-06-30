@@ -1,11 +1,10 @@
 package user
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
+	"github.com/god-jason/bucket/config"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -13,13 +12,6 @@ type loginObj struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Remember bool   `json:"remember"`
-}
-
-func md5hash(text string) string {
-	h := md5.New()
-	h.Write([]byte(text))
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
 }
 
 func login(ctx *gin.Context) {
@@ -72,13 +64,13 @@ func login(ctx *gin.Context) {
 
 	//初始化密码
 	if !has {
-		dp := "123456" //todo 配置化
-		password.Password = md5hash(dp)
+		dp := config.GetString(MODULE, "default_password")
+		password.Password = passwordHash(dp)
 
 		//写入数据库
 		_, err = _passwordTable.Insert(map[string]any{
 			"_id":      user.Id,
-			"password": md5hash(dp),
+			"password": passwordHash(dp),
 		})
 		if err != nil {
 			api.Error(ctx, err)
@@ -129,7 +121,7 @@ func password(ctx *gin.Context) {
 		return
 	}
 
-	userId := ctx.GetString("userId")
+	userId := ctx.GetString("user")
 
 	var pwd Password
 	has, err := _passwordTable.Get(userId, &pwd)

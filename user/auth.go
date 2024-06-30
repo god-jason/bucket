@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/api"
+	"github.com/god-jason/bucket/config"
 	"github.com/god-jason/bucket/web"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -37,8 +38,8 @@ func auth(ctx *gin.Context) {
 	}
 	//初始化密码
 	if !has {
-		dp := "123456"
-		obj.Password = md5hash(dp)
+		dp := config.GetString(MODULE, "default_password")
+		obj.Password = passwordHash(dp)
 	}
 
 	if obj.Password != password {
