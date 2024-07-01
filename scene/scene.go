@@ -98,7 +98,15 @@ func (s *Scene) Close() error {
 	return nil
 }
 
-func (s *Scene) OnValuesChange(product, device string, values map[string]any) {
+func (s *Scene) OnProjectValuesChange(project, product, device string, values map[string]any) {
+	s.OnDeviceValuesChange(product, device, values)
+}
+
+func (s *Scene) OnSpaceValuesChange(space, product, device string, values map[string]any) {
+	s.OnDeviceValuesChange(product, device, values)
+}
+
+func (s *Scene) OnDeviceValuesChange(product, device string, values map[string]any) {
 	//检查时间
 	if len(s.Times) > 0 {
 		now := time.Now()

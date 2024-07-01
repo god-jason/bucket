@@ -1,7 +1,15 @@
 package base
 
-type ValuesWatcher interface {
-	OnValuesChange(product, device string, values map[string]any) //监听属性变化
+type DeviceValuesWatcher interface {
+	OnDeviceValuesChange(product, device string, values map[string]any) //监听属性变化
+}
+
+type ProjectValuesWatcher interface {
+	OnProjectValuesChange(project, product, device string, values map[string]any) //监听属性变化
+}
+
+type SpaceValuesWatcher interface {
+	OnSpaceValuesChange(space, product, device string, values map[string]any) //监听属性变化
 }
 
 //type ProductValuesWatcher interface {
@@ -13,6 +21,6 @@ type ValuesWatcher interface {
 //	OnDeviceRemove(device *device.Device)
 //}
 
-//type ValuesWatcher interface {
+//type DeviceValuesWatcher interface {
 //	OnProjectValuesChange(device string, values map[string]any) //监听属性变化
 //}

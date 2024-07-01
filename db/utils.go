@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/god-jason/bucket/pkg/exception"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"strings"
 )
@@ -42,6 +43,17 @@ func ParseDocumentObjectId(doc any) {
 				//vv, err := ParseObjectId(v) //todo 检查数组
 				continue
 			}
+			ParseDocumentObjectId(v)
+		}
+	case bson.E:
+		if strings.HasSuffix(val.Key, "_id") {
+			oid, err := ParseObjectId(val.Value)
+			if err == nil {
+				val.Value = oid
+			}
+		}
+	case bson.D:
+		for _, v := range val {
 			ParseDocumentObjectId(v)
 		}
 	case []any: //todo is slice,  reflect.TypeOf(i).Kind()==reflect.Slice

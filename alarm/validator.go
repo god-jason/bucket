@@ -98,7 +98,15 @@ func (v *Validator) Close() error {
 	return nil
 }
 
-func (v *Validator) OnValuesChange(product, device string, values map[string]any) {
+func (v *Validator) OnProjectValuesChange(project, product, device string, values map[string]any) {
+	v.OnDeviceValuesChange(product, device, values)
+}
+
+func (v *Validator) OnSpaceValuesChange(space, product, device string, values map[string]any) {
+	v.OnDeviceValuesChange(product, device, values)
+}
+
+func (v *Validator) OnDeviceValuesChange(product, device string, values map[string]any) {
 	if v.DeviceId != "" {
 		if v.ProductId != product {
 			//不是当前产品

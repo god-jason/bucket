@@ -5,6 +5,7 @@ import (
 	"github.com/god-jason/bucket/aggregate/aggregator"
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/pkg/exception"
+	"github.com/god-jason/bucket/pool"
 	"github.com/god-jason/bucket/product"
 	"github.com/god-jason/bucket/project"
 	"github.com/god-jason/bucket/space"
@@ -44,7 +45,7 @@ type Device struct {
 	gatewayClient *mqtt.Client
 
 	//监听
-	valuesWatchers map[base.ValuesWatcher]any
+	valuesWatchers map[base.DeviceValuesWatcher]any
 }
 
 func (d *Device) Open() error {
@@ -72,7 +73,7 @@ func (d *Device) Open() error {
 
 	d.pendingActions = make(map[string]chan *PayloadActionUp)
 
-	d.valuesWatchers = make(map[base.ValuesWatcher]any)
+	d.valuesWatchers = make(map[base.DeviceValuesWatcher]any)
 
 	d.running = true
 
@@ -175,7 +176,9 @@ func (d *Device) PatchValues(values map[string]any) {
 
 	//监听变化
 	for w, _ := range d.valuesWatchers {
-		w.OnValuesChange(d.ProductId, d.Id, d.values)
+		_ = pool.Insert(func() {
+			w.OnDeviceValuesChange(d.ProductId, d.Id, d.values)
+		})
 	}
 }
 
@@ -253,10 +256,10 @@ func (d *Device) Values() map[string]any {
 	return d.values
 }
 
-func (d *Device) WatchValues(watcher base.ValuesWatcher) {
+func (d *Device) WatchValues(watcher base.DeviceValuesWatcher) {
 	d.valuesWatchers[watcher] = 1
 }
 
-func (d *Device) UnWatchValues(watcher base.ValuesWatcher) {
+func (d *Device) UnWatchValues(watcher base.DeviceValuesWatcher) {
 	delete(d.valuesWatchers, watcher)
 }

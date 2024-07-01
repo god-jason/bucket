@@ -3,6 +3,7 @@ package project
 import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/pkg/exception"
+	"github.com/god-jason/bucket/pool"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -14,13 +15,13 @@ type Project struct {
 
 	running bool
 
-	valuesWatchers map[base.ValuesWatcher]any
+	valuesWatchers map[base.ProjectValuesWatcher]any
 }
 
 func (p *Project) Open() error {
 	//todo 启动所有空间
 
-	p.valuesWatchers = make(map[base.ValuesWatcher]any)
+	p.valuesWatchers = make(map[base.ProjectValuesWatcher]any)
 	p.running = true
 	return nil
 }
@@ -44,16 +45,18 @@ func (p *Project) Devices(productId string) (ids []string, err error) {
 	})
 }
 
-func (p *Project) OnValuesChange(product, device string, values map[string]any) {
+func (p *Project) OnDeviceValuesChange(product, device string, values map[string]any) {
 	for w, _ := range p.valuesWatchers {
-		w.OnValuesChange(product, device, values)
+		_ = pool.Insert(func() {
+			w.OnProjectValuesChange(p.Id, product, device, values)
+		})
 	}
 }
 
-func (p *Project) WatchValues(w base.ValuesWatcher) {
+func (p *Project) WatchValues(w base.ProjectValuesWatcher) {
 	p.valuesWatchers[w] = 1
 }
 
-func (p *Project) UnWatchValues(w base.ValuesWatcher) {
+func (p *Project) UnWatchValues(w base.ProjectValuesWatcher) {
 	delete(p.valuesWatchers, w)
 }

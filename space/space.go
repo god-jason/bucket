@@ -3,6 +3,7 @@ package space
 import (
 	"github.com/god-jason/bucket/base"
 	"github.com/god-jason/bucket/pkg/exception"
+	"github.com/god-jason/bucket/pool"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -15,11 +16,11 @@ type Space struct {
 
 	running bool
 
-	valuesWatchers map[base.ValuesWatcher]any
+	valuesWatchers map[base.SpaceValuesWatcher]any
 }
 
 func (s *Space) Open() error {
-	s.valuesWatchers = make(map[base.ValuesWatcher]any)
+	s.valuesWatchers = make(map[base.SpaceValuesWatcher]any)
 	s.running = true
 	return nil
 }
@@ -41,16 +42,18 @@ func (s *Space) Devices(productId string) (ids []string, err error) {
 	})
 }
 
-func (s *Space) OnValuesChange(product, device string, values map[string]any) {
+func (s *Space) OnDeviceValuesChange(product, device string, values map[string]any) {
 	for w, _ := range s.valuesWatchers {
-		w.OnValuesChange(product, device, values)
+		_ = pool.Insert(func() {
+			w.OnSpaceValuesChange(s.Id, product, device, values)
+		})
 	}
 }
 
-func (s *Space) WatchValues(w base.ValuesWatcher) {
+func (s *Space) WatchValues(w base.SpaceValuesWatcher) {
 	s.valuesWatchers[w] = 1
 }
 
-func (s *Space) UnWatchValues(w base.ValuesWatcher) {
+func (s *Space) UnWatchValues(w base.SpaceValuesWatcher) {
 	delete(s.valuesWatchers, w)
 }
