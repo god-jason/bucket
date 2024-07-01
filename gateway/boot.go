@@ -25,7 +25,7 @@ func Startup() error {
 	//_ = server.AddHook(new(auth.AllowHook), nil)
 
 	//todo config 支持匿名
-	err := server.AddHook(new(IncomingHook), nil)
+	err := server.AddHook(new(Hook), nil)
 	if err != nil {
 		return err
 	}

@@ -9,14 +9,15 @@ import (
 	"strings"
 )
 
-type IncomingHook struct {
+type Hook struct {
 	mqtt.HookBase
 }
 
-func (h *IncomingHook) ID() string {
-	return "incoming"
+func (h *Hook) ID() string {
+	return "gateway"
 }
-func (h *IncomingHook) Provides(b byte) bool {
+func (h *Hook) Provides(b byte) bool {
+	//高效吗？
 	return bytes.Contains([]byte{
 		mqtt.OnConnectAuthenticate,
 		mqtt.OnACLCheck,
@@ -25,7 +26,7 @@ func (h *IncomingHook) Provides(b byte) bool {
 	}, []byte{b})
 }
 
-func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
+func (h *Hook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	//todo 如果支持匿名，则直接true
 
 	id := pk.Connect.ClientIdentifier
@@ -50,17 +51,17 @@ func (h *IncomingHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet)
 	return true
 }
 
-func (h *IncomingHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
+func (h *Hook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
 	//只允许发送属性事件
 	return write
 }
 
-func (h *IncomingHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
+func (h *Hook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
 	//todo 网关离线，相关设备置为离线状态
 
 }
 
-func (h *IncomingHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
+func (h *Hook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
 	//直接处理数据
 	topics := strings.Split(pk.TopicName, "/")
 	if len(topics) != 4 {
