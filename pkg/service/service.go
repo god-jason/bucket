@@ -3,9 +3,11 @@ package service
 import (
 	"github.com/god-jason/bucket/config"
 	"github.com/kardianos/service"
+	"log"
 )
 
 var svc service.Service
+var logger service.Logger
 
 func Register(startup, shutdown func()) (err error) {
 	var serviceConfig = &service.Config{
@@ -21,7 +23,16 @@ func Register(startup, shutdown func()) (err error) {
 	}
 
 	svc, err = service.New(p, serviceConfig)
-	return
+	if err != nil {
+		return err
+	}
+
+	logger, err = svc.Logger(nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Run() error {
@@ -44,8 +55,37 @@ func Uninstall() error {
 	return svc.Install()
 }
 
-func Logger() (service.Logger, error) {
-	return svc.Logger(nil)
+func Error(v ...interface{}) {
+	if logger != nil {
+		err := logger.Error(v...)
+		if err != nil {
+			log.Println(v...)
+		}
+	} else {
+		log.Println(v...)
+	}
+}
+
+func Warn(v ...interface{}) {
+	if logger != nil {
+		err := logger.Warning(v...)
+		if err != nil {
+			log.Println(v...)
+		}
+	} else {
+		log.Println(v...)
+	}
+}
+
+func Info(v ...interface{}) {
+	if logger != nil {
+		err := logger.Info(v...)
+		if err != nil {
+			log.Println(v...)
+		}
+	} else {
+		log.Println(v...)
+	}
 }
 
 type Program struct {
