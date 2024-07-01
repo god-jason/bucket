@@ -44,6 +44,10 @@ func Uninstall() error {
 	return svc.Install()
 }
 
+func Logger() (service.Logger, error) {
+	return svc.Logger(nil)
+}
+
 type Program struct {
 	Startup  func()
 	Shutdown func()
