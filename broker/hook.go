@@ -23,6 +23,7 @@ func (h *Hook) Provides(b byte) bool {
 }
 
 func (h *Hook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
+	//cl.Net.Listener todo websocket 直接鉴权通过
 
 	return true
 }
