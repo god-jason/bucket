@@ -3,7 +3,6 @@ package broker
 import (
 	"github.com/god-jason/bucket/boot"
 	mqtt "github.com/mochi-mqtt/server/v2"
-	"github.com/mochi-mqtt/server/v2/listeners"
 )
 
 func init() {
@@ -30,11 +29,6 @@ func Startup() error {
 		return err
 	}
 
-	l := listeners.NewTCP(listeners.Config{ID: "gateway", Address: ":1883"}) //todo config
-	err = server.AddListener(l)
-	if err != nil {
-		return err
-	}
 	return server.Serve()
 }
 
