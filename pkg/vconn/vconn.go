@@ -1,6 +1,7 @@
 package vconn
 
 import (
+	"errors"
 	"io"
 	"net"
 	"time"
@@ -26,7 +27,7 @@ func (c *VConn) Close() error {
 	e1 := c.PipeWriter.Close()
 	e2 := c.PipeReader.Close()
 	if e1 != nil && e2 != nil {
-		return exception.Join(e1, e2)
+		return errors.Join(e1, e2)
 		//return errors.New(e1.Error() + " and " + e2.Error())
 	}
 	if e1 != nil {
