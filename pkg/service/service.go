@@ -9,7 +9,7 @@ import (
 var svc service.Service
 var logger service.Logger
 
-func Register(startup, shutdown func()) (err error) {
+func Register(startup, shutdown func() error) (err error) {
 	var serviceConfig = &service.Config{
 		Name:        config.GetString(MODULE, "name"),
 		DisplayName: config.GetString(MODULE, "display"),
@@ -89,8 +89,8 @@ func Info(v ...interface{}) {
 }
 
 type Program struct {
-	Startup  func()
-	Shutdown func()
+	Startup  func() error
+	Shutdown func() error
 }
 
 func (p *Program) Start(s service.Service) error {
@@ -99,7 +99,10 @@ func (p *Program) Start(s service.Service) error {
 }
 
 func (p *Program) Stop(s service.Service) error {
-	p.Shutdown()
+	err := p.Shutdown()
+	if err != nil {
+		_ = logger.Error(err)
+	}
 	return nil
 }
 
@@ -123,5 +126,8 @@ func (p *Program) run() {
 	//}()
 
 	//内部启动
-	p.Startup()
+	err := p.Startup()
+	if err != nil {
+		_ = logger.Error(err)
+	}
 }
