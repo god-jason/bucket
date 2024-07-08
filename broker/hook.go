@@ -38,39 +38,52 @@ func (h *Hook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
 }
 
 func (h *Hook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-
+	//执行unsubscribe
+	subs := cl.State.Subscriptions.GetAll()
+	for _, sub := range subs {
+		handleUnsubscribe(sub.Filter)
+	}
 }
 
 func (h *Hook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
 	//device/+/values
 	//project/+/values
+	//space/+/values
 	for _, f := range pk.Filters {
-		ss := strings.Split(f.Filter, "/")
-		if len(ss) == 3 {
-			switch ss[0] {
-			case "device":
-				watchDeviceValues(ss[1])
-			case "project":
-				watchProjectValues(ss[1])
-			case "space":
-				watchSpaceValues(ss[1])
-			}
-		}
+		handleSubscribe(f.Filter)
 	}
 }
 
 func (h *Hook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 	for _, f := range pk.Filters {
-		ss := strings.Split(f.Filter, "/")
-		if len(ss) == 3 {
-			switch ss[0] {
-			case "device":
-				unWatchDeviceValues(ss[1])
-			case "project":
-				unWatchProjectValues(ss[1])
-			case "space":
-				unWatchSpaceValues(ss[1])
-			}
+		handleUnsubscribe(f.Filter)
+	}
+}
+
+func handleSubscribe(filter string) {
+	ss := strings.Split(filter, "/")
+	if len(ss) == 3 && ss[2] == "values" {
+		switch ss[0] {
+		case "device":
+			watchDeviceValues(ss[1])
+		case "project":
+			watchProjectValues(ss[1])
+		case "space":
+			watchSpaceValues(ss[1])
+		}
+	}
+}
+
+func handleUnsubscribe(filter string) {
+	ss := strings.Split(filter, "/")
+	if len(ss) == 3 && ss[2] == "values" {
+		switch ss[0] {
+		case "device":
+			unWatchDeviceValues(ss[1])
+		case "project":
+			unWatchProjectValues(ss[1])
+		case "space":
+			unWatchSpaceValues(ss[1])
 		}
 	}
 }
