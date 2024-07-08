@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/db"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 )
 
@@ -29,7 +30,7 @@ func ApiImport(table string) gin.HandlerFunc {
 			return
 		}
 
-		var idss []any
+		var idss []primitive.ObjectID
 		//数据解析
 		for _, file := range reader.File {
 			if file.FileInfo().IsDir() {
