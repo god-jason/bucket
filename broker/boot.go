@@ -2,6 +2,7 @@ package broker
 
 import (
 	"github.com/god-jason/bucket/boot"
+	"github.com/god-jason/bucket/web"
 	mqtt "github.com/mochi-mqtt/server/v2"
 )
 
@@ -21,15 +22,13 @@ func Startup() error {
 	}
 	server = mqtt.New(opts)
 
-	//_ = server.AddHook(new(auth.AllowHook), nil)
-
-	//todo config 支持匿名
 	err := server.AddHook(new(Hook), nil)
 	if err != nil {
 		return err
 	}
 
-	//todo 监听列表
+	//监听Websocket
+	web.Engine.GET("/mqtt", GinBridge)
 
 	return server.Serve()
 }

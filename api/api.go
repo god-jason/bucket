@@ -4,7 +4,6 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/god-jason/bucket/web"
-	"github.com/god-jason/bucket/web/attach"
 	"net/http"
 )
 
@@ -86,7 +85,7 @@ func RegisterRoutes(router *gin.RouterGroup) {
 	}
 
 	//附件管理
-	attach.Routers(router.Group("/attach"), "attach")
+	//attach.Routers(router.Group("/attach"), "attach")
 
 	//报接口错误（以下代码不生效，路由好像不是树形处理）
 	router.Use(func(ctx *gin.Context) {

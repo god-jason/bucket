@@ -6,7 +6,7 @@ import (
 	_ "github.com/god-jason/bucket/alarm"
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/boot"
-	"github.com/god-jason/bucket/broker"
+	_ "github.com/god-jason/bucket/broker"
 	_ "github.com/god-jason/bucket/device"
 	_ "github.com/god-jason/bucket/function"
 	_ "github.com/god-jason/bucket/gateway"
@@ -28,9 +28,6 @@ func main() {
 
 	//注册接口
 	api.RegisterRoutes(web.Engine.Group("api"))
-
-	//mqtt 监听Websocket
-	web.Engine.GET("/mqtt", broker.GinBridge)
 
 	//注册静态文件
 	web.Static.PutDir("", "www", "", "index.html")
