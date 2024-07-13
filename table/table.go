@@ -3,7 +3,9 @@ package table
 import (
 	"errors"
 	"github.com/dop251/goja"
+	"github.com/god-jason/bucket/accumulate"
 	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/pkg/javascript"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -18,11 +20,16 @@ type Table struct {
 	Name   string   `json:"name,omitempty"`
 	Fields []*Field `json:"fields,omitempty"`
 
+	//Json Schema
 	Schema string `json:"schema,omitempty"`
 	schema *jsonschema.Schema
 
+	//脚本
 	Scripts map[string]string `json:"scripts,omitempty"`
 	scripts map[string]*goja.Program
+
+	//累加器
+	Accumulations []*accumulate.Accumulation `json:"accumulations,omitempty"`
 
 	TimeSeries *options.TimeSeriesOptions `json:"-"` //时间序列参数
 	Hook       *Hook                      `json:"-"`
@@ -42,6 +49,14 @@ func (t *Table) init() (err error) {
 	t.scripts = make(map[string]*goja.Program)
 	for hook, str := range t.Scripts {
 		t.scripts[hook], err = javascript.Compile(str)
+		if err != nil {
+			return err
+		}
+	}
+
+	//初始化累加器
+	for _, a := range t.Accumulations {
+		err = a.Init()
 		if err != nil {
 			return err
 		}
@@ -124,26 +139,38 @@ func (t *Table) Insert(doc any) (id string, err error) {
 		}
 	}
 
+	//累加器
+	for _, a := range t.Accumulations {
+		ret, err := a.Evaluate(doc)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
 	return ret.Hex(), nil
 }
 
 func (t *Table) Import(docs []any) (ids []string, err error) {
-
 	//没有hook，则直接InsertMany
-	if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
-		if _, ok := t.scripts["before.insert"]; !ok {
-			if _, ok := t.scripts["after.insert"]; !ok {
-				oids, err := db.InsertMany(t.Name, docs)
-				if err != nil {
-					return nil, err
-				}
-				for _, id := range oids {
-					ids = append(ids, id.Hex())
-				}
-				return ids, nil
-			}
-		}
-	}
+	//if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
+	//	if _, ok := t.scripts["before.insert"]; !ok {
+	//		if _, ok := t.scripts["after.insert"]; !ok {
+	//			oids, err := db.InsertMany(t.Name, docs)
+	//			if err != nil {
+	//				return nil, err
+	//			}
+	//			for _, id := range oids {
+	//				ids = append(ids, id.Hex())
+	//			}
+	//			return ids, nil
+	//		}
+	//	}
+	//}
 
 	//依次插入
 	for _, doc := range docs {
@@ -157,26 +184,25 @@ func (t *Table) Import(docs []any) (ids []string, err error) {
 }
 
 func (t *Table) ImportDocument(docs []db.Document) (ids []string, err error) {
-
 	//没有hook，则直接InsertMany
-	if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
-		if _, ok := t.scripts["before.insert"]; !ok {
-			if _, ok := t.scripts["after.insert"]; !ok {
-				ds := make([]any, 0, len(docs))
-				for _, doc := range docs {
-					ds = append(ds, doc)
-				}
-				oids, err := db.InsertMany(t.Name, ds)
-				if err != nil {
-					return nil, err
-				}
-				for _, id := range oids {
-					ids = append(ids, id.Hex())
-				}
-				return ids, nil
-			}
-		}
-	}
+	//if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
+	//	if _, ok := t.scripts["before.insert"]; !ok {
+	//		if _, ok := t.scripts["after.insert"]; !ok {
+	//			ds := make([]any, 0, len(docs))
+	//			for _, doc := range docs {
+	//				ds = append(ds, doc)
+	//			}
+	//			oids, err := db.InsertMany(t.Name, ds)
+	//			if err != nil {
+	//				return nil, err
+	//			}
+	//			for _, id := range oids {
+	//				ids = append(ids, id.Hex())
+	//			}
+	//			return ids, nil
+	//		}
+	//	}
+	//}
 
 	//依次插入
 	for _, doc := range docs {
@@ -243,6 +269,19 @@ func (t *Table) Delete(id string) error {
 		}
 	}
 
+	//累加器
+	for _, a := range t.Accumulations {
+		ret, err := a.Evaluate(result)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
 	return err
 }
 
@@ -283,8 +322,8 @@ func (t *Table) Update(id string, update any) error {
 	}
 	db.ParseDocumentObjectId(update)
 
-	var result db.Document
-	has, err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &result)
+	var base db.Document
+	has, err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &base)
 	if err != nil {
 		return err
 	}
@@ -293,15 +332,15 @@ func (t *Table) Update(id string, update any) error {
 	}
 
 	//把差异保存到修改历史表
-	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": oid, "base": result, "change": update})
+	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": oid, "base": base, "change": update})
 
 	//转换—_id
 	db.StringifyDocumentObjectId(update)
-	db.StringifyDocumentObjectId(result)
+	db.StringifyDocumentObjectId(base)
 
 	//after update
 	if t.Hook != nil && t.Hook.AfterUpdate != nil {
-		err := t.Hook.AfterUpdate(id, update, result)
+		err := t.Hook.AfterUpdate(id, update, base)
 		if err != nil {
 			return exception.Wrap(err)
 		}
@@ -310,10 +349,40 @@ func (t *Table) Update(id string, update any) error {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
 		_ = vm.Set("change", update)
-		_ = vm.Set("base", result)
+		_ = vm.Set("base", base)
 		_, err = vm.RunProgram(hook)
 		if err != nil {
 			return exception.Wrap(err)
+		}
+	}
+
+	//累加器，先减，再加
+	for _, a := range t.Accumulations {
+		ret, err := a.Evaluate(base)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	//补充字段，base已经被污染
+	if u, ok := update.(map[string]any); ok {
+		for k, v := range u {
+			base[k] = v
+		}
+	}
+	for _, a := range t.Accumulations {
+		ret, err := a.Evaluate(update)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+		if err != nil {
+			log.Error(err)
 		}
 	}
 

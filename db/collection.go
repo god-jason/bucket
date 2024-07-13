@@ -120,11 +120,12 @@ func UpdateOne(tab string, filter any, update any, upsert bool) (int64, error) {
 	return ret.ModifiedCount, nil
 }
 
-func UpdateMany(tab string, filter any, update any) (int64, error) {
+func UpdateMany(tab string, filter any, update any, upsert bool) (int64, error) {
 	if db == nil {
 		return 0, ErrDisconnect
 	}
-	ret, err := db.Collection(tab).UpdateMany(context.Background(), filter, update)
+	opts := options.Update().SetUpsert(upsert)
+	ret, err := db.Collection(tab).UpdateMany(context.Background(), filter, update, opts)
 	if err != nil {
 		return 0, exception.Wrap(err)
 	}
