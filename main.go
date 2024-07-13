@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "github.com/god-jason/bucket/aggregate"
 	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/boot"
 	_ "github.com/god-jason/bucket/function"
