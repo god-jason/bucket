@@ -41,15 +41,13 @@ func (a *Accumulation) Init() (err error) {
 
 	a._filter = make(map[string]gval.Evaluable)
 	for key, value := range a.Filter {
-		switch val := value.(type) {
-		case string:
+		if val, ok := value.(string); ok {
 			if expr, has := strings.CutPrefix(val, "="); has {
 				a._filter[key], err = calc.New(expr)
 				if err != nil {
 					return err
 				}
 			}
-		default:
 		}
 	}
 
@@ -66,8 +64,7 @@ func (a *Accumulation) Init() (err error) {
 		}
 
 		//值
-		switch val := value.(type) {
-		case string:
+		if val, ok := value.(string); ok {
 			if expr, has := strings.CutPrefix(val, "="); has {
 				f._value, err = calc.New(expr)
 				if err != nil {
