@@ -8,6 +8,7 @@ import (
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/pkg/javascript"
+	"github.com/god-jason/bucket/pool"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,11 +37,9 @@ type Table struct {
 	Hook       *Hook                      `json:"-"`
 
 	//快照
-	SnapshotOptions *SnapshotOptions `json:"snapshot,omitempty"`
+	Snapshot *SnapshotOptions `json:"snapshot,omitempty"`
 	//备份
-	DeleteOptions *DeleteOptions `json:"delete,omitempty"`
-	//历史
-	HistoryOptions *HistoryOptions `json:"history,omitempty"`
+	Backup *BackupOptions `json:"backup,omitempty"`
 }
 
 func (t *Table) init() (err error) {
@@ -148,19 +147,23 @@ func (t *Table) Insert(doc any) (id string, err error) {
 	}
 
 	//累加器
-	for _, a := range t.Accumulations {
-		ret, err := a.Evaluate(doc)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
+	if len(t.Accumulations) > 0 {
+		_ = pool.Insert(func() {
+			for _, a := range t.Accumulations {
+				ret, err := a.Evaluate(doc)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
 
-		if len(ret.Document) > 0 {
-			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
-			if err != nil {
-				log.Error(err)
+				if len(ret.Document) > 0 {
+					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+					if err != nil {
+						log.Error(err)
+					}
+				}
 			}
-		}
+		})
 	}
 
 	return ret.Hex(), nil
@@ -258,8 +261,8 @@ func (t *Table) Delete(id string) error {
 	}
 
 	//备份
-	if t.DeleteOptions != nil && t.DeleteOptions.Backup {
-		tab := t.DeleteOptions.BackupTable
+	if t.Backup != nil && t.Backup.Deleted {
+		tab := t.Backup.DeleteTable
 		if tab == "" {
 			tab = t.Name + ".history"
 		}
@@ -291,18 +294,22 @@ func (t *Table) Delete(id string) error {
 	}
 
 	//累加器
-	for _, a := range t.Accumulations {
-		ret, err := a.Evaluate(result)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		if len(ret.Document) > 0 {
-			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
-			if err != nil {
-				log.Error(err)
+	if len(t.Accumulations) > 0 {
+		_ = pool.Insert(func() {
+			for _, a := range t.Accumulations {
+				ret, err := a.Evaluate(result)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
+				if len(ret.Document) > 0 {
+					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
+					if err != nil {
+						log.Error(err)
+					}
+				}
 			}
-		}
+		})
 	}
 
 	return err
@@ -355,11 +362,11 @@ func (t *Table) Update(id string, update any) error {
 	}
 
 	//把差异保存到修改历史表
-	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": oid, "base": base, "change": update})
+	//_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": oid, "base": base, "change": update})
 
 	//备份
-	if t.HistoryOptions != nil && t.HistoryOptions.Backup {
-		tab := t.HistoryOptions.BackupTable
+	if t.Backup != nil && t.Backup.Updated {
+		tab := t.Backup.UpdateTable
 		if tab == "" {
 			tab = t.Name + ".history"
 		}
@@ -393,37 +400,41 @@ func (t *Table) Update(id string, update any) error {
 	}
 
 	//累加器，先减，再加
-	for _, a := range t.Accumulations {
-		ret, err := a.Evaluate(base)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		if len(ret.Document) > 0 {
-			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
-			if err != nil {
-				log.Error(err)
+	if len(t.Accumulations) > 0 {
+		_ = pool.Insert(func() {
+			for _, a := range t.Accumulations {
+				ret, err := a.Evaluate(base)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
+				if len(ret.Document) > 0 {
+					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
+					if err != nil {
+						log.Error(err)
+					}
+				}
 			}
-		}
-	}
-	//补充字段，base已经被污染
-	if u, ok := update.(map[string]any); ok {
-		for k, v := range u {
-			base[k] = v
-		}
-	}
-	for _, a := range t.Accumulations {
-		ret, err := a.Evaluate(update)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		if len(ret.Document) > 0 {
-			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
-			if err != nil {
-				log.Error(err)
+			//补充字段，base已经被污染
+			if u, ok := update.(map[string]any); ok {
+				for k, v := range u {
+					base[k] = v
+				}
 			}
-		}
+			for _, a := range t.Accumulations {
+				ret, err := a.Evaluate(update)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
+				if len(ret.Document) > 0 {
+					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+					if err != nil {
+						log.Error(err)
+					}
+				}
+			}
+		})
 	}
 
 	return err
@@ -482,10 +493,15 @@ func (t *Table) DistinctId(filter any) (values []string, err error) {
 	return values, nil
 }
 
-func (t *Table) Snapshot(into string) (err error) {
+func (t *Table) snapshot() (err error) {
+	if t.Snapshot == nil {
+		return exception.New("没有配置快照")
+	}
+
 	var docs []db.Document
 
 	//默认表名
+	into := t.Snapshot.Table
 	if into == "" {
 		into = t.Name + ".snapshot"
 	}

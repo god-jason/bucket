@@ -33,9 +33,9 @@ func Startup() error {
 	//定时快照
 	_cron = cron.New()
 	tables.Range(func(name string, item *Table) bool {
-		if item.SnapshotOptions != nil && item.SnapshotOptions.Crontab != "" {
+		if item.Snapshot != nil && item.Snapshot.Crontab != "" {
 			_, err := _cron.AddFunc("0 0 * * *", func() {
-				err := item.Snapshot(item.SnapshotOptions.Table)
+				err := item.snapshot()
 				if err != nil {
 					log.Error(err)
 				}
