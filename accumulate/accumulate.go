@@ -118,9 +118,14 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 
 		val := f.Value
 		if f._value != nil {
-			val, err = f._value.EvalString(context.Background(), args)
+			val, err = f._value.EvalFloat64(context.Background(), args)
 			if err != nil {
 				return
+			}
+
+			//路过0值
+			if val.(float64) == 0.0 {
+				continue
 			}
 		}
 

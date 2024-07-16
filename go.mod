@@ -13,6 +13,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/kardianos/service v1.2.2
 	github.com/panjf2000/ants/v2 v2.10.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cast v1.6.0

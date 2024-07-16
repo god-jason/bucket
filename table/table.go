@@ -10,6 +10,7 @@ import (
 	"github.com/god-jason/bucket/pkg/javascript"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
@@ -33,6 +34,13 @@ type Table struct {
 
 	TimeSeries *options.TimeSeriesOptions `json:"-"` //时间序列参数
 	Hook       *Hook                      `json:"-"`
+
+	//快照
+	SnapshotOptions *SnapshotOptions `json:"snapshot,omitempty"`
+	//备份
+	DeleteOptions *DeleteOptions `json:"delete,omitempty"`
+	//历史
+	HistoryOptions *HistoryOptions `json:"history,omitempty"`
 }
 
 func (t *Table) init() (err error) {
@@ -146,9 +154,12 @@ func (t *Table) Insert(doc any) (id string, err error) {
 			log.Error(err)
 			continue
 		}
-		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
-		if err != nil {
-			log.Error(err)
+
+		if len(ret.Document) > 0 {
+			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
 
@@ -246,8 +257,18 @@ func (t *Table) Delete(id string) error {
 		return NotFound
 	}
 
-	//把删除保存到修改历史表
-	_, _ = db.InsertOne(t.Name+".deleted", result)
+	//备份
+	if t.DeleteOptions != nil && t.DeleteOptions.Backup {
+		tab := t.DeleteOptions.BackupTable
+		if tab == "" {
+			tab = t.Name + ".history"
+		}
+		//把删除保存到修改历史表
+		result["__id"] = oid
+		result["deleted"] = time.Now()
+		delete(result, "_id")
+		_, _ = db.InsertOne(tab, result)
+	}
 
 	//转换_id
 	db.StringifyDocumentObjectId(result)
@@ -276,9 +297,11 @@ func (t *Table) Delete(id string) error {
 			log.Error(err)
 			continue
 		}
-		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
-		if err != nil {
-			log.Error(err)
+		if len(ret.Document) > 0 {
+			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
 
@@ -334,6 +357,19 @@ func (t *Table) Update(id string, update any) error {
 	//把差异保存到修改历史表
 	_, _ = db.InsertOne(t.Name+".change", bson.M{"object_id": oid, "base": base, "change": update})
 
+	//备份
+	if t.HistoryOptions != nil && t.HistoryOptions.Backup {
+		tab := t.HistoryOptions.BackupTable
+		if tab == "" {
+			tab = t.Name + ".history"
+		}
+		//把删除保存到修改历史表
+		base["__id"] = oid
+		base["updated"] = time.Now()
+		delete(base, "_id")
+		_, _ = db.InsertOne(tab, base)
+	}
+
 	//转换—_id
 	db.StringifyDocumentObjectId(update)
 	db.StringifyDocumentObjectId(base)
@@ -363,9 +399,11 @@ func (t *Table) Update(id string, update any) error {
 			log.Error(err)
 			continue
 		}
-		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
-		if err != nil {
-			log.Error(err)
+		if len(ret.Document) > 0 {
+			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
 	//补充字段，base已经被污染
@@ -380,9 +418,11 @@ func (t *Table) Update(id string, update any) error {
 			log.Error(err)
 			continue
 		}
-		_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
-		if err != nil {
-			log.Error(err)
+		if len(ret.Document) > 0 {
+			_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
 
@@ -440,4 +480,22 @@ func (t *Table) DistinctId(filter any) (values []string, err error) {
 		values = append(values, id.Hex())
 	}
 	return values, nil
+}
+
+func (t *Table) Snapshot(into string) (err error) {
+	var docs []db.Document
+
+	//默认表名
+	if into == "" {
+		into = t.Name + ".snapshot"
+	}
+
+	now := time.Now()
+	pipeline := mongo.Pipeline{
+		bson.D{{"$set", bson.M{"object_id": "$_id", "date": now}}},
+		bson.D{{"$unset", "_id"}},
+		bson.D{{"$merge", bson.M{"into": into}}},
+	}
+
+	return t.Aggregate(pipeline, &docs)
 }
