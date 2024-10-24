@@ -2,9 +2,9 @@ package table
 
 import (
 	"encoding/json"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/lib"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/mongodb"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -77,7 +77,7 @@ func LoadAll() error {
 }
 
 func Sync() error {
-	tabs, err := db.Tables()
+	tabs, err := mongodb.Tables()
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func Sync() error {
 			//时序参数
 			opts.SetTimeSeriesOptions(table.TimeSeries)
 		}
-		err = db.CreateTable(name, opts)
+		err = mongodb.CreateTable(name, opts)
 		if err != nil {
 			return false
 		}
@@ -113,7 +113,7 @@ func Sync() error {
 			}
 		}
 		if len(keys) > 0 {
-			err = db.CreateIndex(name, keys)
+			err = mongodb.CreateIndex(name, keys)
 			if err != nil {
 				return false
 			}

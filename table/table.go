@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/dop251/goja"
 	"github.com/god-jason/bucket/accumulate"
-	"github.com/god-jason/bucket/db"
 	"github.com/god-jason/bucket/log"
+	"github.com/god-jason/bucket/mongodb"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/pkg/javascript"
 	"github.com/god-jason/bucket/pool"
@@ -73,13 +73,13 @@ func (t *Table) init() (err error) {
 }
 
 func (t *Table) Aggregate(pipeline any, results any) error {
-	db.ParseDocumentObjectId(pipeline)
-	return db.Aggregate(t.Name, pipeline, results)
+	mongodb.ParseDocumentObjectId(pipeline)
+	return mongodb.Aggregate(t.Name, pipeline, results)
 }
 
-func (t *Table) AggregateDocument(pipeline any, results *[]db.Document) error {
-	db.ParseDocumentObjectId(pipeline)
-	return db.Aggregate(t.Name, pipeline, results)
+func (t *Table) AggregateDocument(pipeline any, results *[]mongodb.Document) error {
+	mongodb.ParseDocumentObjectId(pipeline)
+	return mongodb.Aggregate(t.Name, pipeline, results)
 }
 
 func (t *Table) Insert(doc any) (id string, err error) {
@@ -120,7 +120,7 @@ func (t *Table) Insert(doc any) (id string, err error) {
 	}
 	//todo 用反射检查 struct
 
-	ret, err := db.InsertOne(t.Name, doc)
+	ret, err := mongodb.InsertOne(t.Name, doc)
 	if err != nil {
 		return "", err
 	}
@@ -157,7 +157,7 @@ func (t *Table) Insert(doc any) (id string, err error) {
 				}
 
 				if len(ret.Document) > 0 {
-					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -197,7 +197,7 @@ func (t *Table) Import(docs []any) (ids []string, err error) {
 	return ids, nil
 }
 
-func (t *Table) ImportDocument(docs []db.Document) (ids []string, err error) {
+func (t *Table) ImportDocument(docs []mongodb.Document) (ids []string, err error) {
 	//没有hook，则直接InsertMany
 	//if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
 	//	if _, ok := t.scripts["before.insert"]; !ok {
@@ -246,13 +246,13 @@ func (t *Table) Delete(id string) error {
 		}
 	}
 
-	oid, err := db.ParseObjectId(id)
+	oid, err := mongodb.ParseObjectId(id)
 	if err != nil {
 		return err
 	}
 
-	var result db.Document
-	has, err := db.FindOneAndDelete(t.Name, bson.D{{"_id", oid}}, &result)
+	var result mongodb.Document
+	has, err := mongodb.FindOneAndDelete(t.Name, bson.D{{"_id", oid}}, &result)
 	if err != nil {
 		return err
 	}
@@ -270,11 +270,11 @@ func (t *Table) Delete(id string) error {
 		result["__id"] = oid
 		result["deleted"] = time.Now()
 		delete(result, "_id")
-		_, _ = db.InsertOne(tab, result)
+		_, _ = mongodb.InsertOne(tab, result)
 	}
 
 	//转换_id
-	db.StringifyDocumentObjectId(result)
+	mongodb.StringifyDocumentObjectId(result)
 
 	//after delete
 	if t.Hook != nil && t.Hook.AfterDelete != nil {
@@ -303,7 +303,7 @@ func (t *Table) Delete(id string) error {
 					continue
 				}
 				if len(ret.Document) > 0 {
-					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
+					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
 					if err != nil {
 						log.Error(err)
 					}
@@ -346,14 +346,14 @@ func (t *Table) Update(id string, update any) error {
 	}
 
 	//转换_id
-	oid, err := db.ParseObjectId(id)
+	oid, err := mongodb.ParseObjectId(id)
 	if err != nil {
 		return err
 	}
-	db.ParseDocumentObjectId(update)
+	mongodb.ParseDocumentObjectId(update)
 
-	var base db.Document
-	has, err := db.FindOneAndUpdate(t.Name, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &base)
+	var base mongodb.Document
+	has, err := mongodb.FindOneAndUpdate(t.Name, bson.D{{"_id", oid}}, bson.D{{"$set", update}}, &base)
 	if err != nil {
 		return err
 	}
@@ -374,12 +374,12 @@ func (t *Table) Update(id string, update any) error {
 		base["__id"] = oid
 		base["updated"] = time.Now()
 		delete(base, "_id")
-		_, _ = db.InsertOne(tab, base)
+		_, _ = mongodb.InsertOne(tab, base)
 	}
 
 	//转换—_id
-	db.StringifyDocumentObjectId(update)
-	db.StringifyDocumentObjectId(base)
+	mongodb.StringifyDocumentObjectId(update)
+	mongodb.StringifyDocumentObjectId(base)
 
 	//after update
 	if t.Hook != nil && t.Hook.AfterUpdate != nil {
@@ -409,7 +409,7 @@ func (t *Table) Update(id string, update any) error {
 					continue
 				}
 				if len(ret.Document) > 0 {
-					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
+					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -428,7 +428,7 @@ func (t *Table) Update(id string, update any) error {
 					continue
 				}
 				if len(ret.Document) > 0 {
-					_, err = db.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -441,49 +441,49 @@ func (t *Table) Update(id string, update any) error {
 }
 
 func (t *Table) Get(id string, result any) (has bool, err error) {
-	oid, err := db.ParseObjectId(id)
+	oid, err := mongodb.ParseObjectId(id)
 	if err != nil {
 		return false, err
 	}
-	return db.FindOne(t.Name, bson.D{{"_id", oid}}, result)
+	return mongodb.FindOne(t.Name, bson.D{{"_id", oid}}, result)
 }
 
-func (t *Table) GetDocument(id string, result *db.Document) (has bool, err error) {
-	oid, err := db.ParseObjectId(id)
+func (t *Table) GetDocument(id string, result *mongodb.Document) (has bool, err error) {
+	oid, err := mongodb.ParseObjectId(id)
 	if err != nil {
 		return false, err
 	}
-	db.StringifyDocumentObjectId(result)
-	return db.FindOne(t.Name, bson.D{{"_id", oid}}, result)
+	mongodb.StringifyDocumentObjectId(result)
+	return mongodb.FindOne(t.Name, bson.D{{"_id", oid}}, result)
 }
 
 func (t *Table) Find(filter any, sort any, skip int64, limit int64, results any) error {
-	db.ParseDocumentObjectId(filter)
-	return db.Find(t.Name, filter, sort, skip, limit, results)
+	mongodb.ParseDocumentObjectId(filter)
+	return mongodb.Find(t.Name, filter, sort, skip, limit, results)
 }
 
-func (t *Table) FindDocument(filter any, sort any, skip int64, limit int64, results *[]db.Document) error {
-	db.ParseDocumentObjectId(filter)
-	return db.Find(t.Name, filter, sort, skip, limit, results)
+func (t *Table) FindDocument(filter any, sort any, skip int64, limit int64, results *[]mongodb.Document) error {
+	mongodb.ParseDocumentObjectId(filter)
+	return mongodb.Find(t.Name, filter, sort, skip, limit, results)
 }
 
 func (t *Table) Count(filter any) (count int64, err error) {
-	db.ParseDocumentObjectId(filter)
-	return db.Count(t.Name, filter)
+	mongodb.ParseDocumentObjectId(filter)
+	return mongodb.Count(t.Name, filter)
 }
 
 func (t *Table) Drop() error {
-	return db.Drop(t.Name)
+	return mongodb.Drop(t.Name)
 }
 
 func (t *Table) Distinct(filter any, field string) (values []any, err error) {
-	db.ParseDocumentObjectId(filter)
-	return db.Distinct(t.Name, filter, field)
+	mongodb.ParseDocumentObjectId(filter)
+	return mongodb.Distinct(t.Name, filter, field)
 }
 
 func (t *Table) DistinctId(filter any) (values []string, err error) {
-	db.ParseDocumentObjectId(filter)
-	ids, err := db.DistinctId(t.Name, filter)
+	mongodb.ParseDocumentObjectId(filter)
+	ids, err := mongodb.DistinctId(t.Name, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +498,7 @@ func (t *Table) snapshot() (err error) {
 		return exception.New("没有配置快照")
 	}
 
-	var docs []db.Document
+	var docs []mongodb.Document
 
 	//默认表名
 	into := t.Snapshot.Table

@@ -2,13 +2,13 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"github.com/god-jason/bucket/table"
 )
 
 func Create(tab *table.Table, after func(id string) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var doc db.Document
+		var doc mongodb.Document
 		err := ctx.ShouldBind(&doc)
 		if err != nil {
 			Error(ctx, err)

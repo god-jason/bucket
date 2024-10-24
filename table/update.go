@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 )
 
 func ApiUpdate(ctx *gin.Context) {
@@ -12,7 +12,7 @@ func ApiUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var update db.Document
+	var update mongodb.Document
 	err = ctx.ShouldBindJSON(&update)
 	if err != nil {
 		Error(ctx, err)

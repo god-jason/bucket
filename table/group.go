@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -80,7 +80,7 @@ func ApiGroup(ctx *gin.Context) {
 	group := bson.D{{"$group", groups}}
 	pipeline = append(pipeline, group)
 
-	var results []db.Document
+	var results []mongodb.Document
 	err = table.AggregateDocument(pipeline, &results)
 	if err != nil {
 		Error(ctx, err)

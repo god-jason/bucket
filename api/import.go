@@ -3,14 +3,14 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"github.com/god-jason/bucket/table"
 	"io"
 )
 
 func Import(tab *table.Table, after func(ids []string) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var doc []db.Document
+		var doc []mongodb.Document
 
 		//支持文件上传
 		if ctx.ContentType() == "multipart/form-data" {

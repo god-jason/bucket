@@ -1,10 +1,10 @@
-package db
+package mongodb
 
 import (
 	"github.com/god-jason/bucket/config"
 )
 
-const MODULE = "database"
+const MODULE = "mongodb"
 
 func init() {
 	config.Register(MODULE, "url", "mongodb://localhost:27017")

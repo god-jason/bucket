@@ -3,7 +3,7 @@ package table
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"io"
 )
 
@@ -14,7 +14,7 @@ func ApiImport(ctx *gin.Context) {
 		return
 	}
 
-	var doc []db.Document
+	var doc []mongodb.Document
 
 	//支持文件上传
 	if ctx.ContentType() == "multipart/form-data" {

@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 )
 
 func ApiDetail(ctx *gin.Context) {
@@ -12,7 +12,7 @@ func ApiDetail(ctx *gin.Context) {
 		return
 	}
 
-	var doc db.Document
+	var doc mongodb.Document
 	has, err := table.Get(ctx.Param("id"), &doc)
 	if err != nil {
 		Error(ctx, err)

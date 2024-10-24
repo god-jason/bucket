@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 )
 
 func main() {
@@ -16,11 +16,11 @@ func main() {
 
 	fmt.Println(a)
 
-	db.ParseDocumentObjectId(a)
+	mongodb.ParseDocumentObjectId(a)
 
 	fmt.Println(a)
 
-	db.StringifyDocumentObjectId(a)
+	mongodb.StringifyDocumentObjectId(a)
 
 	fmt.Println(a)
 

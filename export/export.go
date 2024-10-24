@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -16,7 +16,7 @@ func ApiExport(table, filename string) gin.HandlerFunc {
 
 		var datum []bson.M
 
-		err := db.Find(table, bson.D{{Key: "_id", Value: bson.E{Key: "$in", Value: ids}}}, nil, 0, 0, &datum)
+		err := mongodb.Find(table, bson.D{{Key: "_id", Value: bson.E{Key: "$in", Value: ids}}}, nil, 0, 0, &datum)
 		if err != nil {
 			Error(ctx, err)
 			return

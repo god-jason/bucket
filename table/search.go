@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -97,7 +97,7 @@ func ApiSearch(ctx *gin.Context) {
 		pipeline = append(pipeline, project)
 	}
 
-	var results []db.Document
+	var results []mongodb.Document
 	err = table.AggregateDocument(pipeline, &results)
 	if err != nil {
 		Error(ctx, err)

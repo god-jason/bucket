@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 )
@@ -51,7 +51,7 @@ func ApiImport(table string) gin.HandlerFunc {
 				return
 			}
 
-			ids, err := db.InsertMany(table, data)
+			ids, err := mongodb.InsertMany(table, data)
 			if err != nil {
 				Error(ctx, err)
 				return

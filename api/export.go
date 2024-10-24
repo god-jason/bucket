@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/god-jason/bucket/db"
+	"github.com/god-jason/bucket/mongodb"
 	"github.com/god-jason/bucket/table"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,7 +40,7 @@ func Export(tab *table.Table) gin.HandlerFunc {
 			pipeline = append(pipeline, limit)
 		}
 
-		var results []db.Document
+		var results []mongodb.Document
 		err = tab.AggregateDocument(pipeline, &results)
 		if err != nil {
 			Error(ctx, err)

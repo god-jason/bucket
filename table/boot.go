@@ -10,7 +10,7 @@ func init() {
 	boot.Register("table", &boot.Task{
 		Startup:  Startup,
 		Shutdown: Shutdown,
-		Depends:  []string{"database", "pool"},
+		Depends:  []string{"mongodb", "pool"},
 	})
 }
 
