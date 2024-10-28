@@ -8,7 +8,7 @@ func init() {
 	boot.Register("function", &boot.Task{
 		Startup:  Startup, //启动
 		Shutdown: nil,
-		Depends:  []string{"log", "database"},
+		Depends:  []string{"log"},
 	})
 }
 

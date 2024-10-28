@@ -3,9 +3,9 @@ package table
 import (
 	"errors"
 	"github.com/dop251/goja"
-	"github.com/god-jason/bucket/accumulate"
 	"github.com/god-jason/bucket/log"
 	"github.com/god-jason/bucket/mongodb"
+	"github.com/god-jason/bucket/pkg/accumulate"
 	"github.com/god-jason/bucket/pkg/exception"
 	"github.com/god-jason/bucket/pkg/javascript"
 	"github.com/god-jason/bucket/pool"
@@ -156,8 +156,8 @@ func (t *Table) Insert(doc any) (id string, err error) {
 					continue
 				}
 
-				if len(ret.Document) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+				if len(ret.TargetFields) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$inc": ret.TargetFields}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -302,8 +302,8 @@ func (t *Table) Delete(id string) error {
 					log.Error(err)
 					continue
 				}
-				if len(ret.Document) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, false)
+				if len(ret.TargetFields) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$dec": ret.TargetFields}, false)
 					if err != nil {
 						log.Error(err)
 					}
@@ -408,8 +408,8 @@ func (t *Table) Update(id string, update any) error {
 					log.Error(err)
 					continue
 				}
-				if len(ret.Document) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$dec": ret.Document}, true)
+				if len(ret.TargetFields) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$dec": ret.TargetFields}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -427,8 +427,8 @@ func (t *Table) Update(id string, update any) error {
 					log.Error(err)
 					continue
 				}
-				if len(ret.Document) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.Filter, bson.M{"$inc": ret.Document}, true)
+				if len(ret.TargetFields) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$inc": ret.TargetFields}, true)
 					if err != nil {
 						log.Error(err)
 					}

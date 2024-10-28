@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-type Result struct {
-	Target   string
-	Filter   map[string]any
-	Document map[string]any
-}
-
 type Field struct {
 	Key   string
 	Value any
@@ -21,10 +15,17 @@ type Field struct {
 	_value gval.Evaluable
 }
 
+type Result struct {
+	Target       string
+	MetaFields   map[string]any
+	TargetFields map[string]any
+}
+
+// Accumulation 累积器，空间换时间，主要用于统计
 type Accumulation struct {
-	Target   string         `json:"target"`
-	Filter   map[string]any `json:"filter"`
-	Document map[string]any `json:"document"`
+	Target       string         `json:"target"`
+	MetaFields   map[string]any `json:"meta_fields"`
+	TargetFields map[string]any `json:"target_fields"`
 
 	_target gval.Evaluable
 	_filter map[string]gval.Evaluable
@@ -40,7 +41,7 @@ func (a *Accumulation) Init() (err error) {
 	}
 
 	a._filter = make(map[string]gval.Evaluable)
-	for key, value := range a.Filter {
+	for key, value := range a.MetaFields {
 		if val, ok := value.(string); ok {
 			if expr, has := strings.CutPrefix(val, "="); has {
 				a._filter[key], err = calc.New(expr)
@@ -51,7 +52,7 @@ func (a *Accumulation) Init() (err error) {
 		}
 	}
 
-	for key, value := range a.Document {
+	for key, value := range a.TargetFields {
 
 		f := &Field{Key: key, Value: value}
 
@@ -93,19 +94,19 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 	}
 
 	//过滤器
-	ret.Filter = make(map[string]any)
+	ret.MetaFields = make(map[string]any)
 	for key, value := range a._filter {
 		if value != nil {
-			ret.Filter[key], err = a._target(context.Background(), args)
+			ret.MetaFields[key], err = a._target(context.Background(), args)
 			if err != nil {
 				return
 			}
 		} else {
-			ret.Filter[key] = a.Filter[key]
+			ret.MetaFields[key] = a.MetaFields[key]
 		}
 	}
 
-	ret.Document = make(map[string]any)
+	ret.TargetFields = make(map[string]any)
 
 	for _, f := range a._fields {
 		key := f.Key
@@ -129,7 +130,7 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 			}
 		}
 
-		ret.Document[key] = val
+		ret.TargetFields[key] = val
 	}
 
 	return &ret, nil
