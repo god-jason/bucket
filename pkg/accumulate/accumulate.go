@@ -16,19 +16,19 @@ type Field struct {
 }
 
 type Result struct {
-	Target       string
-	MetaFields   map[string]any
-	TargetFields map[string]any
+	Target string
+	Meta   map[string]any
+	Values map[string]any
 }
 
 // Accumulation 累积器，空间换时间，主要用于统计
 type Accumulation struct {
-	Target       string         `json:"target"`
-	MetaFields   map[string]any `json:"meta_fields"`
-	TargetFields map[string]any `json:"target_fields"`
+	Target string         `json:"target"`
+	Meta   map[string]any `json:"meta"`
+	Fields map[string]any `json:"fields"`
 
 	_target gval.Evaluable
-	_filter map[string]gval.Evaluable
+	_meta   map[string]gval.Evaluable
 	_fields []*Field
 }
 
@@ -40,11 +40,11 @@ func (a *Accumulation) Init() (err error) {
 		}
 	}
 
-	a._filter = make(map[string]gval.Evaluable)
-	for key, value := range a.MetaFields {
+	a._meta = make(map[string]gval.Evaluable)
+	for key, value := range a.Meta {
 		if val, ok := value.(string); ok {
 			if expr, has := strings.CutPrefix(val, "="); has {
-				a._filter[key], err = calc.New(expr)
+				a._meta[key], err = calc.New(expr)
 				if err != nil {
 					return err
 				}
@@ -52,7 +52,7 @@ func (a *Accumulation) Init() (err error) {
 		}
 	}
 
-	for key, value := range a.TargetFields {
+	for key, value := range a.Fields {
 
 		f := &Field{Key: key, Value: value}
 
@@ -94,19 +94,19 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 	}
 
 	//过滤器
-	ret.MetaFields = make(map[string]any)
-	for key, value := range a._filter {
+	ret.Meta = make(map[string]any)
+	for key, value := range a._meta {
 		if value != nil {
-			ret.MetaFields[key], err = a._target(context.Background(), args)
+			ret.Meta[key], err = a._target(context.Background(), args)
 			if err != nil {
 				return
 			}
 		} else {
-			ret.MetaFields[key] = a.MetaFields[key]
+			ret.Meta[key] = a.Meta[key]
 		}
 	}
 
-	ret.TargetFields = make(map[string]any)
+	ret.Values = make(map[string]any)
 
 	for _, f := range a._fields {
 		key := f.Key
@@ -130,7 +130,7 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 			}
 		}
 
-		ret.TargetFields[key] = val
+		ret.Values[key] = val
 	}
 
 	return &ret, nil

@@ -156,8 +156,8 @@ func (t *Table) Insert(doc any) (id string, err error) {
 					continue
 				}
 
-				if len(ret.TargetFields) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$inc": ret.TargetFields}, true)
+				if len(ret.Values) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.Meta, bson.M{"$inc": ret.Values}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -302,8 +302,8 @@ func (t *Table) Delete(id string) error {
 					log.Error(err)
 					continue
 				}
-				if len(ret.TargetFields) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$dec": ret.TargetFields}, false)
+				if len(ret.Values) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.Meta, bson.M{"$dec": ret.Values}, false)
 					if err != nil {
 						log.Error(err)
 					}
@@ -408,8 +408,8 @@ func (t *Table) Update(id string, update any) error {
 					log.Error(err)
 					continue
 				}
-				if len(ret.TargetFields) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$dec": ret.TargetFields}, true)
+				if len(ret.Values) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.Meta, bson.M{"$dec": ret.Values}, true)
 					if err != nil {
 						log.Error(err)
 					}
@@ -427,8 +427,8 @@ func (t *Table) Update(id string, update any) error {
 					log.Error(err)
 					continue
 				}
-				if len(ret.TargetFields) > 0 {
-					_, err = mongodb.UpdateMany(ret.Target, ret.MetaFields, bson.M{"$inc": ret.TargetFields}, true)
+				if len(ret.Values) > 0 {
+					_, err = mongodb.UpdateMany(ret.Target, ret.Meta, bson.M{"$inc": ret.Values}, true)
 					if err != nil {
 						log.Error(err)
 					}
