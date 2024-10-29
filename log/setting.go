@@ -1,8 +1,8 @@
 package log
 
 import (
+	"github.com/god-jason/bucket/pkg/smart"
 	"github.com/god-jason/bucket/setting"
-	"github.com/god-jason/bucket/types"
 )
 
 func init() {
@@ -10,12 +10,12 @@ func init() {
 		Name:   "日志",
 		Module: MODULE,
 		Title:  "日志配置",
-		Form: []types.SmartField{
+		Form: smart.Form{
 			{Key: "caller", Label: "显示函数调用", Type: "switch"},
 			{Key: "text", Label: "使用文本格式", Type: "switch"},
 			{
 				Key: "level", Label: "等级", Type: "select", Default: "info",
-				Options: []types.SmartSelectOption{
+				Options: []smart.SelectOption{
 					{Label: "跟踪 trace", Value: "trace"},
 					{Label: "调试 debug", Value: "debug"},
 					{Label: "信息 info", Value: "info"},
@@ -26,7 +26,7 @@ func init() {
 			},
 			{
 				Key: "Type", Label: "输出方式", Type: "select", Default: "stdout",
-				Options: []types.SmartSelectOption{
+				Options: []smart.SelectOption{
 					{Label: "文件", Value: "file"},
 					{Label: "多文件", Value: "files"},
 					{Label: "标准输出", Value: "stdout"},

@@ -1,8 +1,8 @@
 package mongodb
 
 import (
+	"github.com/god-jason/bucket/pkg/smart"
 	"github.com/god-jason/bucket/setting"
-	"github.com/god-jason/bucket/types"
 )
 
 func init() {
@@ -10,7 +10,7 @@ func init() {
 		Name:   "数据库",
 		Module: MODULE,
 		Title:  "数据库配置",
-		Form: []types.SmartField{
+		Form: smart.Form{
 			{Key: "url", Label: "连接字符串", Type: "text"},
 			{Key: "database", Label: "数据库", Type: "text"},
 			{Key: "auth", Label: "鉴权数据库", Type: "text"},

@@ -2,14 +2,14 @@ package setting
 
 import (
 	"github.com/god-jason/bucket/lib"
-	"github.com/god-jason/bucket/types"
+	"github.com/god-jason/bucket/pkg/smart"
 )
 
 type Module struct {
-	Name   string             `json:"name"`
-	Module string             `json:"module"`
-	Title  string             `json:"title,omitempty"`
-	Form   []types.SmartField `json:"-"`
+	Name   string     `json:"name"`
+	Module string     `json:"module"`
+	Title  string     `json:"title,omitempty"`
+	Form   smart.Form `json:"-"`
 }
 
 var modules lib.Map[Module]

@@ -1,8 +1,8 @@
 package web
 
 import (
+	"github.com/god-jason/bucket/pkg/smart"
 	"github.com/god-jason/bucket/setting"
-	"github.com/god-jason/bucket/types"
 )
 
 func init() {
@@ -10,14 +10,14 @@ func init() {
 		Name:   "Web",
 		Module: MODULE,
 		Title:  "Web配置",
-		Form: []types.SmartField{
+		Form: smart.Form{
 			{Key: "port", Label: "端口", Type: "number", Required: true, Default: 8080, Min: 1, Max: 65535},
 			{Key: "debug", Label: "调试模式", Type: "switch"},
 			{Key: "cors", Label: "跨域请求", Type: "switch"},
 			{Key: "gzip", Label: "压缩模式", Type: "switch"},
 			{
 				Key: "https", Label: "HTTPS", Type: "select",
-				Options: []types.SmartSelectOption{
+				Options: []smart.SelectOption{
 					{Label: "禁用", Value: ""},
 					{Label: "TLS", Value: "TLS"},
 					{Label: "LetsEncrypt", Value: "LetsEncrypt"},
