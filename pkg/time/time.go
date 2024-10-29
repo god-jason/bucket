@@ -1,6 +1,7 @@
 package time
 
 import (
+	"sync"
 	"time"
 )
 
@@ -40,4 +41,31 @@ func (t *Time) format() string {
 
 func (t *Time) MarshalText() ([]byte, error) {
 	return []byte(t.format()), nil
+}
+
+func Now() Time {
+	return Time(time.Now())
+}
+
+func After(ms int64, fn func()) {
+	time.AfterFunc(time.Duration(ms)*time.Millisecond, fn)
+}
+
+func Sleep(ms int64, fn func()) {
+	time.Sleep(time.Duration(ms) * time.Millisecond)
+}
+
+var quick Time
+var once sync.Once
+
+func Quick() Time {
+	once.Do(func() {
+		go func() {
+			for {
+				quick = Now()
+				time.Sleep(time.Second)
+			}
+		}()
+	})
+	return quick
 }
