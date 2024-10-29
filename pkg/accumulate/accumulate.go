@@ -83,7 +83,7 @@ func (a *Accumulation) Init() (err error) {
 func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 	var ret Result
 
-	//目标
+	//目标库
 	if a._target != nil {
 		ret.Target, err = a._target.EvalString(context.Background(), args)
 		if err != nil {
@@ -95,17 +95,18 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 
 	//过滤器
 	ret.Meta = make(map[string]any)
-	for key, value := range a._meta {
-		if value != nil {
-			ret.Meta[key], err = a._target(context.Background(), args)
+	for key, value := range a.Meta {
+		if val, has := a._meta[key]; has {
+			ret.Meta[key], err = val(context.Background(), args)
 			if err != nil {
 				return
 			}
 		} else {
-			ret.Meta[key] = a.Meta[key]
+			ret.Meta[key] = value
 		}
 	}
 
+	//值
 	ret.Values = make(map[string]any)
 
 	for _, f := range a._fields {
