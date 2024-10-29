@@ -19,22 +19,23 @@ import (
 var NotFound = errors.New("找不到记录")
 
 type Table struct {
-	Name   string   `json:"name,omitempty"`
-	Fields []*Field `json:"fields,omitempty"`
+	Name   string
+	Fields []*Field
 
 	//Json Schema
-	Schema string `json:"schema,omitempty"`
-	schema *jsonschema.Schema
+	Schema *jsonschema.Schema
 
 	//脚本
-	Scripts map[string]string `json:"scripts,omitempty"`
-	scripts map[string]*goja.Program
+	Scripts map[string]*goja.Program
 
 	//累加器
-	Accumulations []*accumulate.Accumulation `json:"accumulations,omitempty"`
+	Accumulations []*accumulate.Accumulation
 
-	TimeSeries *options.TimeSeriesOptions `json:"-"` //时间序列参数
-	Hook       *Hook                      `json:"-"`
+	//时间序列参数
+	TimeSeries *options.TimeSeriesOptions
+
+	//钩子处理
+	Hook *Hook
 
 	//快照
 	Snapshot *SnapshotOptions `json:"snapshot,omitempty"`
@@ -43,24 +44,6 @@ type Table struct {
 }
 
 func (t *Table) init() (err error) {
-
-	//JSONSchema
-	if t.Schema != "" {
-		t.schema, err = compiler.Compile(t.Schema)
-		if err != nil {
-			return err
-		}
-	}
-
-	//编译脚本
-	t.scripts = make(map[string]*goja.Program)
-	for hook, str := range t.Scripts {
-		t.scripts[hook], err = javascript.Compile(str)
-		if err != nil {
-			return err
-		}
-	}
-
 	//初始化累加器
 	for _, a := range t.Accumulations {
 		err = a.Init()
@@ -85,8 +68,8 @@ func (t *Table) AggregateDocument(pipeline any, results *[]mongodb.Document) err
 func (t *Table) Insert(doc any) (id string, err error) {
 
 	//检查
-	if t.schema != nil {
-		err = t.schema.Validate(doc)
+	if t.Schema != nil {
+		err = t.Schema.Validate(doc)
 		if err != nil {
 			return "", exception.Wrap(err)
 		}
@@ -99,7 +82,7 @@ func (t *Table) Insert(doc any) (id string, err error) {
 			return "", exception.Wrap(err)
 		}
 	}
-	if hook, ok := t.scripts["before.insert"]; ok {
+	if hook, ok := t.Scripts["before.insert"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("object", doc)
 		_, err = vm.RunProgram(hook)
@@ -136,7 +119,7 @@ func (t *Table) Insert(doc any) (id string, err error) {
 			return "", exception.Wrap(err)
 		}
 	}
-	if hook, ok := t.scripts["after.insert"]; ok {
+	if hook, ok := t.Scripts["after.insert"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", ret)
 		_ = vm.Set("object", doc)
@@ -172,8 +155,8 @@ func (t *Table) Insert(doc any) (id string, err error) {
 func (t *Table) Import(docs []any) (ids []string, err error) {
 	//没有hook，则直接InsertMany
 	//if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
-	//	if _, ok := t.scripts["before.insert"]; !ok {
-	//		if _, ok := t.scripts["after.insert"]; !ok {
+	//	if _, ok := t.Scripts["before.insert"]; !ok {
+	//		if _, ok := t.Scripts["after.insert"]; !ok {
 	//			oids, err := db.InsertMany(t.Name, docs)
 	//			if err != nil {
 	//				return nil, err
@@ -200,8 +183,8 @@ func (t *Table) Import(docs []any) (ids []string, err error) {
 func (t *Table) ImportDocument(docs []mongodb.Document) (ids []string, err error) {
 	//没有hook，则直接InsertMany
 	//if t.Hook == nil || t.Hook.BeforeInsert == nil && t.Hook.AfterInsert == nil {
-	//	if _, ok := t.scripts["before.insert"]; !ok {
-	//		if _, ok := t.scripts["after.insert"]; !ok {
+	//	if _, ok := t.Scripts["before.insert"]; !ok {
+	//		if _, ok := t.Scripts["after.insert"]; !ok {
 	//			ds := make([]any, 0, len(docs))
 	//			for _, doc := range docs {
 	//				ds = append(ds, doc)
@@ -237,7 +220,7 @@ func (t *Table) Delete(id string) error {
 			return exception.Wrap(err)
 		}
 	}
-	if hook, ok := t.scripts["before.delete"]; ok {
+	if hook, ok := t.Scripts["before.delete"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
 		_, err := vm.RunProgram(hook)
@@ -283,7 +266,7 @@ func (t *Table) Delete(id string) error {
 			return exception.Wrap(err)
 		}
 	}
-	if hook, ok := t.scripts["after.delete"]; ok {
+	if hook, ok := t.Scripts["after.delete"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
 		_ = vm.Set("object", result)
@@ -324,7 +307,7 @@ func (t *Table) Update(id string, update any) error {
 			return exception.Wrap(err)
 		}
 	}
-	if hook, ok := t.scripts["before.update"]; ok {
+	if hook, ok := t.Scripts["before.update"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
 		_ = vm.Set("change", update)
@@ -388,7 +371,7 @@ func (t *Table) Update(id string, update any) error {
 			return exception.Wrap(err)
 		}
 	}
-	if hook, ok := t.scripts["after.update"]; ok {
+	if hook, ok := t.Scripts["after.update"]; ok {
 		vm := javascript.Runtime()
 		_ = vm.Set("_id", id)
 		_ = vm.Set("change", update)
