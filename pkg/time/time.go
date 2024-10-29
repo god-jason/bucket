@@ -1,42 +1,35 @@
 package time
 
 import (
-	"sync"
 	"time"
 )
 
 const localDateTimeFormat string = "2006-01-02 15:04:05"
 
-type Time time.Time
+type Time struct {
+	time.Time
+}
 
 func (t *Time) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(localDateTimeFormat)+2)
 	b = append(b, '"')
-	b = time.Time(*t).AppendFormat(b, localDateTimeFormat)
+	b = t.AppendFormat(b, localDateTimeFormat)
 	b = append(b, '"')
 	return b, nil
 }
 
 func (t *Time) UnmarshalJSON(b []byte) error {
-	now, err := time.ParseInLocation(`"`+localDateTimeFormat+`"`, string(b), time.Local)
-	*t = Time(now)
+	tm, err := time.ParseInLocation(`"`+localDateTimeFormat+`"`, string(b), time.Local)
+	*t = Time{tm}
 	return err
 }
 
 func (t *Time) String() string {
-	return time.Time(*t).Format(localDateTimeFormat)
-}
-
-func (t *Time) Now() Time {
-	return Time(time.Now())
-}
-
-func (t *Time) ParseTime(tm time.Time) Time {
-	return Time(tm)
+	return t.Format(localDateTimeFormat)
 }
 
 func (t *Time) format() string {
-	return time.Time(*t).Format(localDateTimeFormat)
+	return t.Format(localDateTimeFormat)
 }
 
 func (t *Time) MarshalText() ([]byte, error) {
@@ -44,7 +37,12 @@ func (t *Time) MarshalText() ([]byte, error) {
 }
 
 func Now() Time {
-	return Time(time.Now())
+	return Time{time.Now()}
+}
+
+func Parse(str string) (Time, error) {
+	tm, err := time.Parse(str, localDateTimeFormat)
+	return Time{tm}, err
 }
 
 func After(ms int64, fn func()) {
@@ -53,19 +51,4 @@ func After(ms int64, fn func()) {
 
 func Sleep(ms int64, fn func()) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
-}
-
-var quick Time
-var once sync.Once
-
-func Quick() Time {
-	once.Do(func() {
-		go func() {
-			for {
-				quick = Now()
-				time.Sleep(time.Second)
-			}
-		}()
-	})
-	return quick
 }
