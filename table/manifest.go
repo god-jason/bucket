@@ -8,6 +8,40 @@ import (
 	"path/filepath"
 )
 
+type Info struct {
+	Name          string `json:"name,omitempty"`
+	Label         string `json:"label,omitempty"`
+	Fields        int    `json:"fields,omitempty"`
+	Schema        bool   `json:"schema,omitempty"`
+	Scripts       int    `json:"scripts,omitempty"`
+	Accumulations int    `json:"accumulations,omitempty"`
+	TimeSeries    bool   `json:"time_series,omitempty"`
+	Snapshot      bool   `json:"snapshot,omitempty"`
+}
+
+func ApiList(ctx *gin.Context) {
+
+	var infos []*Info
+
+	tables.Range(func(name string, tab *Table) bool {
+		infos = append(infos, &Info{
+			Name:          tab.Name,
+			Label:         tab.Name,
+			Fields:        len(tab.Fields),
+			Schema:        tab.Schema != nil,
+			Scripts:       len(tab.Scripts),
+			Accumulations: len(tab.Accumulations),
+			TimeSeries:    tab.TimeSeries != nil,
+			Snapshot:      tab.Snapshot != nil,
+		})
+		return true
+	})
+
+	//TODO 加入空间统计等
+
+	OK(ctx, infos)
+}
+
 func ApiManifest(ctx *gin.Context) {
 	tab := ctx.Param("table")
 	fn := filepath.Join(viper.GetString("data"), Path, tab+".json")
