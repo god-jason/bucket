@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/config"
 )
 
@@ -12,18 +13,18 @@ type passwordObj struct {
 
 func password(ctx *gin.Context) {
 	if config.GetBool(MODULE, "lock") {
-		Fail(ctx, "禁止修改密码")
+		api.Fail(ctx, "禁止修改密码")
 		return
 	}
 
 	var obj passwordObj
 	if err := ctx.ShouldBind(&obj); err != nil {
-		Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
 	if obj.Old != config.GetString(MODULE, "password") {
-		Fail(ctx, "密码错误")
+		api.Fail(ctx, "密码错误")
 		return
 	}
 
@@ -32,9 +33,9 @@ func password(ctx *gin.Context) {
 
 	err := config.Store()
 	if err != nil {
-		Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
-	OK(ctx, nil)
+	api.OK(ctx, nil)
 }

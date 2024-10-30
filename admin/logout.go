@@ -9,7 +9,7 @@ func logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	u := session.Get("user")
 	if u == nil {
-		Fail(ctx, "未登录")
+		api.Fail(ctx, "未登录")
 		return
 	}
 
@@ -18,5 +18,5 @@ func logout(ctx *gin.Context) {
 
 	session.Clear()
 	_ = session.Save()
-	OK(ctx, nil)
+	api.OK(ctx, nil)
 }

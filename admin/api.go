@@ -15,9 +15,9 @@ func me(ctx *gin.Context) {
 	id := ctx.GetString("user")
 
 	if id == "" {
-		Fail(ctx, "未登录")
+		api.Fail(ctx, "未登录")
 		return
 	}
 
-	OK(ctx, gin.H{"id": id})
+	api.OK(ctx, gin.H{"id": id})
 }

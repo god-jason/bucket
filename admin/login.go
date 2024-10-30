@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/api"
 	"github.com/god-jason/bucket/config"
 )
 
@@ -25,13 +26,13 @@ func login(ctx *gin.Context) {
 
 	var obj loginObj
 	if err := ctx.ShouldBind(&obj); err != nil {
-		Error(ctx, err)
+		api.Error(ctx, err)
 		return
 	}
 
 	password := config.GetString(MODULE, "password")
 	if password != obj.Password {
-		Fail(ctx, "密码错误")
+		api.Fail(ctx, "密码错误")
 		return
 	}
 
@@ -41,5 +42,5 @@ func login(ctx *gin.Context) {
 	session.Set("user", "admin")
 	_ = session.Save()
 
-	OK(ctx, gin.H{"id": "admin"})
+	api.OK(ctx, gin.H{"id": "admin"})
 }
