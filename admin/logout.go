@@ -3,6 +3,7 @@ package admin
 import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/god-jason/bucket/api"
 )
 
 func logout(ctx *gin.Context) {
