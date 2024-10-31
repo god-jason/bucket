@@ -15,7 +15,7 @@ func init() {
 
 func Startup() error {
 
-	web.Engine.POST("api/login", login)
+	web.Engine.POST("api/admin/login", login)
 
 	return nil
 }
