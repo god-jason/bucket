@@ -1,9 +1,9 @@
 package table
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -42,56 +42,32 @@ func ApiList(ctx *gin.Context) {
 	OK(ctx, infos)
 }
 
-func ApiManifest(ctx *gin.Context) {
+func ApiConf(ctx *gin.Context) {
 	tab := ctx.Param("table")
-	fn := filepath.Join(viper.GetString("data"), Path, tab+".json")
-	buf, err := os.ReadFile(fn)
+	conf := ctx.Param("conf")
+
+	fn := filepath.Join(viper.GetString("data"), Path, tab, conf)
+	_, err := os.Stat(fn)
 	if err != nil {
 		Error(ctx, err)
 		return
 	}
 
-	var data any
-	err = json.Unmarshal(buf, &data)
-	if err != nil {
-		Error(ctx, err)
-		return
-	}
-
-	OK(ctx, data)
+	ctx.File(fn)
 }
 
-func ApiManifestUpdate(ctx *gin.Context) {
+func ApiConfUpdate(ctx *gin.Context) {
 	tab := ctx.Param("table")
-	var data any
-	err := ctx.ShouldBindJSON(&data)
-	if err != nil {
-		Error(ctx, err)
-		return
-	}
+	conf := ctx.Param("conf")
 
-	buf, err := json.MarshalIndent(data, "", "\t")
-	if err != nil {
-		Error(ctx, err)
-		return
-	}
-
-	_ = os.MkdirAll(filepath.Join(viper.GetString("data"), Path), os.ModePerm)
-	fn := filepath.Join(viper.GetString("data"), Path, tab+".json")
+	fn := filepath.Join(viper.GetString("data"), Path, tab, conf)
 	file, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		Error(ctx, err)
 		return
 	}
-	defer file.Close()
-	_, err = file.Write(buf)
-	if err != nil {
-		Error(ctx, err)
-		return
-	}
 
-	//加载
-	err = Load(tab)
+	_, err = io.Copy(file, ctx.Request.Body)
 	if err != nil {
 		Error(ctx, err)
 		return

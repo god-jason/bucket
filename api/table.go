@@ -6,8 +6,9 @@ import "github.com/god-jason/bucket/table"
 func init() {
 
 	Register("GET", "table/list", table.ApiList)
-	Register("GET", "table/:table/file/:file", table.ApiManifest)
-	Register("POST", "table/:table/file/:file", table.ApiManifestUpdate)
+	Register("GET", "table/:table/reload", table.ApiReload)
+	Register("GET", "table/:table/conf/*conf", table.ApiConf)
+	Register("POST", "table/:table/conf/*conf", table.ApiConfUpdate)
 
 	Register("POST", "table/:table/count", table.ApiCount)
 	Register("POST", "table/:table/create", table.ApiCreate)
