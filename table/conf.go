@@ -61,6 +61,7 @@ func ApiConfUpdate(ctx *gin.Context) {
 	conf := ctx.Param("conf")
 
 	fn := filepath.Join(viper.GetString("data"), Path, tab, conf)
+	_ = os.MkdirAll(filepath.Dir(fn), os.ModePerm)
 	file, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		Error(ctx, err)
