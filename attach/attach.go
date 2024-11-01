@@ -115,7 +115,7 @@ func ApiWrite(root string, params ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		filename := filepath.Join(viper.GetString("data"), root, filepath.Join(getParams(ctx, params)...), ctx.Param("name"))
 		_ = os.MkdirAll(filepath.Dir(filename), os.ModePerm) //创建目录
-		f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+		f, err := os.Create(filename)
 		if err != nil {
 			Error(ctx, err)
 			return

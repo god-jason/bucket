@@ -18,8 +18,14 @@ import (
 
 var NotFound = errors.New("找不到记录")
 
+type Info struct {
+	Id   string `json:"id"`
+	Name string `json:"name,omitempty"`
+}
+
 type Table struct {
-	Name   string
+	Info
+
 	Fields []*Field
 
 	//Json Schema
