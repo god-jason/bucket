@@ -8,28 +8,44 @@ import (
 )
 
 type Field struct {
-	Key   string
-	Value any
+	Key   string `json:"key"`
+	Value any    `json:"value"`
 
 	_key   gval.Evaluable
 	_value gval.Evaluable
 }
 
+func (f *Field) Compile() (err error) {
+	if expr, has := strings.CutPrefix(f.Key, "="); has {
+		f._key, err = calc.New(expr)
+		if err != nil {
+			return err
+		}
+	}
+	if value, ok := f.Value.(string); ok {
+		if expr, has := strings.CutPrefix(value, "="); has {
+			f._value, err = calc.New(expr)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 type Result struct {
-	Target string
-	Meta   map[string]any
-	Values map[string]any
+	Target string         `json:"target"`
+	Filter map[string]any `json:"filter"`
+	Values map[string]any `json:"values"`
 }
 
 // Accumulation 累积器，空间换时间，主要用于统计
 type Accumulation struct {
-	Target string         `json:"target"`
-	Meta   map[string]any `json:"meta"`
-	Fields map[string]any `json:"fields"`
+	Target string   `json:"target"`
+	Filter []*Field `json:"filter"`
+	Values []*Field `json:"values"`
 
 	_target gval.Evaluable
-	_meta   map[string]gval.Evaluable
-	_fields []*Field
 }
 
 func (a *Accumulation) Init() (err error) {
@@ -40,41 +56,18 @@ func (a *Accumulation) Init() (err error) {
 		}
 	}
 
-	a._meta = make(map[string]gval.Evaluable)
-	for key, value := range a.Meta {
-		if val, ok := value.(string); ok {
-			if expr, has := strings.CutPrefix(val, "="); has {
-				a._meta[key], err = calc.New(expr)
-				if err != nil {
-					return err
-				}
-			}
+	for _, f := range a.Filter {
+		err = f.Compile()
+		if err != nil {
+			return err
 		}
 	}
 
-	for key, value := range a.Fields {
-
-		f := &Field{Key: key, Value: value}
-
-		//键
-		if expr, has := strings.CutPrefix(key, "="); has {
-			f._key, err = calc.New(expr)
-			if err != nil {
-				return err
-			}
+	for _, f := range a.Values {
+		err = f.Compile()
+		if err != nil {
+			return err
 		}
-
-		//值
-		if val, ok := value.(string); ok {
-			if expr, has := strings.CutPrefix(val, "="); has {
-				f._value, err = calc.New(expr)
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		a._fields = append(a._fields, f)
 	}
 
 	return nil
@@ -94,22 +87,9 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 	}
 
 	//过滤器
-	ret.Meta = make(map[string]any)
-	for key, value := range a.Meta {
-		if val, has := a._meta[key]; has {
-			ret.Meta[key], err = val(context.Background(), args)
-			if err != nil {
-				return
-			}
-		} else {
-			ret.Meta[key] = value
-		}
-	}
+	ret.Filter = make(map[string]any)
+	for _, f := range a.Filter {
 
-	//值
-	ret.Values = make(map[string]any)
-
-	for _, f := range a._fields {
 		key := f.Key
 		if f._key != nil {
 			key, err = f._key.EvalString(context.Background(), args)
@@ -118,20 +98,36 @@ func (a *Accumulation) Evaluate(args any) (result *Result, err error) {
 			}
 		}
 
-		val := f.Value
+		value := f.Value
 		if f._value != nil {
-			val, err = f._value.EvalFloat64(context.Background(), args)
+			value, err = f._key(context.Background(), args)
 			if err != nil {
 				return
 			}
+		}
+		ret.Filter[key] = value
+	}
 
-			//路过0值
-			if val.(float64) == 0.0 {
-				continue
+	//值
+	ret.Values = make(map[string]any)
+	for _, f := range a.Values {
+
+		key := f.Key
+		if f._key != nil {
+			key, err = f._key.EvalString(context.Background(), args)
+			if err != nil {
+				return
 			}
 		}
 
-		ret.Values[key] = val
+		value := f.Value
+		if f._value != nil {
+			value, err = f._key(context.Background(), args)
+			if err != nil {
+				return
+			}
+		}
+		ret.Filter[key] = value
 	}
 
 	return &ret, nil
