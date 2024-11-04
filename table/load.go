@@ -183,7 +183,7 @@ func Load(id string, strict bool) error {
 	return nil
 }
 
-func ApiList(ctx *gin.Context) {
+func ApiTableList(ctx *gin.Context) {
 
 	var infos []Info
 	//&InfoEx{
@@ -204,7 +204,7 @@ func ApiList(ctx *gin.Context) {
 	OK(ctx, infos)
 }
 
-func ApiReload(ctx *gin.Context) {
+func ApiTableReload(ctx *gin.Context) {
 	tab := ctx.Param("table")
 	err := Load(tab, true)
 	if err != nil {
@@ -213,4 +213,61 @@ func ApiReload(ctx *gin.Context) {
 	}
 
 	OK(ctx, nil)
+}
+
+type rename struct {
+	Name string `json:"name"`
+}
+
+func ApiTableRename(ctx *gin.Context) {
+	var r rename
+	err := ctx.ShouldBindJSON(&r)
+	if err != nil {
+		Error(ctx, err)
+		return
+	}
+
+	tab := ctx.Param("table")
+	old := filepath.Join(viper.GetString("data"), Path, tab)
+	name := filepath.Join(viper.GetString("data"), Path, r.Name)
+	err = os.Rename(old, name)
+	if err != nil {
+		Error(ctx, err)
+		return
+	}
+
+	//直接修改map，不雅
+	t := tables.LoadAndDelete(tab)
+	t.Id = r.Name
+	tables.Store(r.Name, t)
+
+	OK(ctx, nil)
+}
+
+func ApiTableRemove(ctx *gin.Context) {
+	tab := ctx.Param("table")
+	dir := filepath.Join(viper.GetString("data"), Path, tab)
+	err := os.RemoveAll(dir)
+	if err != nil {
+		Error(ctx, err)
+		return
+	}
+
+	OK(ctx, nil)
+}
+
+func ApiTableCreate(ctx *gin.Context) {
+	tab := ctx.Param("table")
+	dir := filepath.Join(viper.GetString("data"), Path, tab)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		Error(ctx, err)
+		return
+	}
+
+	//TODO 空白的
+	_ = Load(tab, false)
+
+	OK(ctx, nil)
+
 }

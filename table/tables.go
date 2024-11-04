@@ -15,16 +15,16 @@ const Path = "tables"
 
 var tables lib.Map[Table]
 
-func Get(name string) (*Table, error) {
-	table := tables.Load(name)
+func Get(id string) (*Table, error) {
+	table := tables.Load(id)
 	if table == nil {
-		return nil, exception.New("没有表定义 " + name)
+		return nil, exception.New("没有表定义 " + id)
 	}
 	return table, nil
 }
 
 func Register(table *Table) {
-	tables.Store(table.Name, table)
+	tables.Store(table.Id, table)
 }
 
 func LoadAll() error {
